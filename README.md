@@ -1,4 +1,4 @@
-# 📊 Cartographie Dynamique des Sujets de Recherche (OpenAlex)
+# 📊 Cartographie Dynamique des domaines OpenAlex
 
 ## 🎯 Objectif du Projet
 
@@ -9,6 +9,12 @@ L'outil permet de :
 1.  **Générer automatiquement** un Diagramme Solaire (**Sunburst Chart**) basé sur une institution et une période de temps définies.
 2.  Visualiser la répartition des publications selon la **hiérarchie disciplinaire OpenAlex** : **Domain** \> **Field** \> **Subfield**.
 3.  Analyser l'évolution des thèmes de recherche et identifier les domaines de force et les sujets émergents.
+
+⚠️ Note Importante sur la Portée de l'Analyse :
+
+L'API OpenAlex, lors du groupement (group_by), retourne par défaut les 200 premières catégories ayant le plus grand nombre de publications liées.
+
+Par conséquent, cette cartographie se concentre sur les 200 Subfields (sous-domaines) qui ont été les plus productifs pour l'institution et la période sélectionnées. Elle offre une vue ciblée des sujets dominants.
 
 -----
 
