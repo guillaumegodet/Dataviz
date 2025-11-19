@@ -1,204 +1,186 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 19 10:15:23 2025
-
-@author: godet-g
-"""
+# SCRIPT COMPLET — Sunburst OpenAlex avec couleurs Domain → Field → Subfield
 
 import streamlit as st
 import pandas as pd
 import requests
-import plotly.express as px
+import plotly.graph_objects as go
 from concurrent.futures import ThreadPoolExecutor
+from matplotlib.colors import to_rgb, to_hex
+import numpy as np
 
-# --- Configuration des URLs OpenAlex ---
-BASE_WORKS_API = "https://https://api.openalex.org/works"
+# --------------------------------------------------------
+# CONFIGURATION
+# --------------------------------------------------------
+BASE_WORKS_API = "https://api.openalex.org/works"
 BASE_SUBFIELD_API = "https://api.openalex.org/subfields"
 
-# --- Fonctions API et Logique ---
+# Couleurs élégantes des 4 Domaines
+DOMAIN_COLORS = {
+    "Physical Sciences": "#1E88E5", 
+    "Life Sciences": "#43A047",      
+    "Social Sciences": "#D32F2F",  
+    "Health Sciences": "#FB8C00",    
+}
+
+DEFAULT_COLOR = "#6A5ACD"
+
+# --------------------------------------------------------
+# UTILITAIRES COULEURS
+# --------------------------------------------------------
+def lighten(hex_color, factor):
+    r, g, b = to_rgb(hex_color)
+    r, g, b = [min(1, c + (1 - c) * factor) for c in (r, g, b)]
+    return to_hex((r, g, b))
+
+
+def color_scale(domain):
+    base = DOMAIN_COLORS.get(domain, DEFAULT_COLOR)
+    return base, lighten(base, 0.4), lighten(base, 0.7)
+
+# --------------------------------------------------------
+# APPELS API
+# --------------------------------------------------------
+@st.cache_data(show_spinner=False)
+def fetch_subfield_counts(inst, period):
+    url = (
+        f"{BASE_WORKS_API}?group_by=primary_topic.subfield.id&per_page=200"
+        f"&filter=authorships.institutions.lineage:{inst},publication_year:{period}"
+    )
+    r = requests.get(url, timeout=30).json()
+    if "group_by" not in r:
+        return None
+    return pd.DataFrame([
+        {"subfield_id": x["key"], "count": x["count"]} for x in r["group_by"]
+    ])
+
 
 @st.cache_data(show_spinner=False)
-def fetch_subfield_counts(institution_id, period):
-    """
-    Récupère les comptes de publication groupés par subfield.
-    Note : L'API OpenAlex retourne par défaut les 200 premières catégories.
-    """
-    # Note: On interroge toujours pour 200 résultats car c'est la limite de l'API
-    # On laisse Streamlit gérer la réduction des N résultats max.
-    
-    st.info(f"Étape 1/3 : Interrogation de l'API OpenAlex pour les travaux de l'institution ({period})...")
-    
-    # Construction du filtre
-    filter_params = f"authorships.institutions.lineage:{institution_id},publication_year:{period}"
-    
-    # URL de l'API pour les travaux groupés par subfield (per_page=200 pour maximiser la récupération)
-    url = f"{BASE_WORKS_API}?group_by=primary_topic.subfield.id&per_page=200&filter={filter_params}"
-    
+def fetch_subfield_details(subfield_id):
+    sid = subfield_id.split("/")[-1]
     try:
-        response = requests.get(url, timeout=30)
-        response.raise_for_status() 
-        data = response.json()
-        
-        if 'group_by' not in data or not data['group_by']:
-            st.warning("Aucun résultat trouvé pour cette institution/période. Veuillez vérifier l'ID ou la période.")
-            return None
-        
-        subfield_counts = [
-            {'subfield_id': item['key'], 'count': item['count']} 
-            for item in data['group_by']
-        ]
-        
-        st.success(f"Récupération de {len(subfield_counts)} subfields (maximum possible) avec succès.")
-        return subfield_counts
-        
-    except requests.exceptions.RequestException as e:
-        st.error(f"Erreur lors de l'appel à l'API Works OpenAlex: {e}")
+        r = requests.get(f"{BASE_SUBFIELD_API}/{sid}", timeout=10).json()
+        return {
+            "subfield_id": subfield_id,
+            "Subfield_Name": r.get("display_name", "N/A"),
+            "Field_Name": r.get("field", {}).get("display_name", "N/A"),
+            "Domain_Name": r.get("domain", {}).get("display_name", "N/A"),
+        }
+    except:
         return None
 
-def fetch_subfield_hierarchy(subfield_id):
-    """
-    Récupère la hiérarchie complète (Domain, Field) pour un seul Subfield ID.
-    """
-    short_id = subfield_id.split('/')[-1]
-    url = f"{BASE_SUBFIELD_API}/{short_id}"
-    
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        details = response.json()
-        
-        domain = details.get('domain', {})
-        field = details.get('field', {})
-        
-        return {
-            'subfield_id': subfield_id,
-            'Subfield_Name': details.get('display_name', 'N/A'),
-            'Field_Name': field.get('display_name', 'N/A'),
-            'Domain_Name': domain.get('display_name', 'N/A'),
-        }
-    except requests.exceptions.RequestException:
-        return {'subfield_id': subfield_id, 'Subfield_Name': 'N/A', 'Field_Name': 'N/A', 'Domain_Name': 'N/A'}
+# --------------------------------------------------------
+# CONSTRUCTION DU SUNBURST (VERSION FIABLE)
+# --------------------------------------------------------
+def build_chart(institution, period, max_subfields):
 
-
-def get_full_data_and_generate_chart(institution_id, period, max_subfields):
-    """
-    Orchestre la récupération des données, la fusion, la réduction et la génération du graphique.
-    """
-    # 1. Récupération des comptes
-    subfield_counts = fetch_subfield_counts(institution_id, period)
-    if not subfield_counts:
+    # ---- 1) RÉCUPÉRATION SUBFIELDS ----
+    df = fetch_subfield_counts(institution, period)
+    if df is None or df.empty:
+        st.error("Aucun résultat trouvé pour cette requête.")
         return
 
-    df_counts = pd.DataFrame(subfield_counts)
-    unique_subfield_ids = df_counts['subfield_id'].unique()
-    
-    # 2. Récupération de la Hiérarchie (en parallèle)
-    st.info(f"Étape 2/3 : Récupération des détails hiérarchiques pour {len(unique_subfield_ids)} subfields...")
+    # ---- 2) RÉCUPÉRATION HIÉRARCHIE (PARALLÈLE) ----
+    subfields = df.subfield_id.unique()
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        details = list(filter(None, ex.map(fetch_subfield_details, subfields)))
 
-    results = []
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = [executor.submit(fetch_subfield_hierarchy, subfield_id) for subfield_id in unique_subfield_ids]
-        
-        for future in futures:
-            result = future.result()
-            if result and result['Domain_Name'] != 'N/A':
-                 results.append(result)
+    dfh = pd.DataFrame(details)
+    df_final = df.merge(dfh, on="subfield_id")
+    df_final = df_final[df_final.Domain_Name != "N/A"].sort_values("count", ascending=False)
 
-    if not results:
-        st.error("Impossible de récupérer les détails hiérarchiques valides pour les subfields.")
-        return
+    df_chart = df_final.head(max_subfields).copy()
 
-    # 3. Fusion, Préparation et Réduction des données
-    st.info("Étape 3/3 : Agrégation, réduction et génération du graphique...")
-    df_hierarchy = pd.DataFrame(results)
-    
-    df_final = pd.merge(df_counts, df_hierarchy, on='subfield_id')
-    
-    df_final = df_final[df_final['Domain_Name'] != 'N/A']
-    
-    if df_final.empty:
-        st.warning("Le jeu de données final est vide après le nettoyage.")
-        return
-        
-    # --- APPLICATION DU CURSEUR (NOUVEAUTÉ) ---
-    df_final = df_final.sort_values(by='count', ascending=False)
-    # Réduit le DataFrame aux N subfields les plus fréquents
-    df_chart = df_final.head(max_subfields)
-    
-    st.success(f"Affichage des {len(df_chart)} subfields les plus fréquents (sur {len(df_final)} disponibles).")
+    # ---- 3) CRÉATION DES COULEURS ----
+    cmap = {}
+    for domain in df_chart.Domain_Name.unique():
+        c_dom, c_field, c_sub = color_scale(domain)
 
-    # 4. Génération du Sunburst Chart
-    
-    fig = px.sunburst(
-        df_chart, # Utilisation du DataFrame réduit
-        path=['Domain_Name', 'Field_Name', 'Subfield_Name'], 
-        values='count',
-        color='Domain_Name', 
-        title=f"Cartographie de l'Institution ({institution_id}) : Période {period} (Top {max_subfields} Subfields)",
-        height=750 
-    )
+        cmap[domain] = c_dom
+        for fld in df_chart[df_chart.Domain_Name == domain].Field_Name.unique():
+            cmap[fld] = c_field
+        for sub in df_chart[df_chart.Domain_Name == domain].Subfield_Name.unique():
+            cmap[sub] = c_sub
+
+    # ---- 4) RECONSTRUCTION MANUELLE DU SUNBURST ----
+    from collections import defaultdict
+
+    node_count = defaultdict(int)
+    parent_of = {}
+    domains = []
+
+    # Feuilles
+    for _, row in df_chart.iterrows():
+        dom = row['Domain_Name']
+        fld = row['Field_Name']
+        sub = row['Subfield_Name']
+        cnt = int(row['count'])
+
+        node_count[sub] += cnt
+        parent_of[sub] = fld
+        parent_of[fld] = dom
+        if dom not in domains:
+            domains.append(dom)
+
+    # Sommes Fields et Domains
+    for fld in df_chart.Field_Name.unique():
+        node_count[fld] = df_chart.loc[df_chart.Field_Name == fld, 'count'].sum()
+
+    for dom in domains:
+        node_count[dom] = df_chart.loc[df_chart.Domain_Name == dom, 'count'].sum()
+
+    # ---- 5) LISTES labels/parents/values/colors ----
+    labels, parents, values, colors = [], [], [], []
+
+    for dom in domains:
+        labels.append(dom)
+        parents.append("")
+        values.append(int(node_count[dom]))
+        colors.append(cmap[dom])
+
+        fields = df_chart[df_chart.Domain_Name == dom].Field_Name.unique()
+        for fld in fields:
+            labels.append(fld)
+            parents.append(dom)
+            values.append(int(node_count[fld]))
+            colors.append(cmap[fld])
+
+            subs = df_chart[(df_chart.Domain_Name == dom) & (df_chart.Field_Name == fld)].Subfield_Name.unique()
+            for sub in subs:
+                labels.append(sub)
+                parents.append(fld)
+                values.append(int(node_count[sub]))
+                colors.append(cmap[sub])
+
+    # ---- 6) SUNBURST PLOTLY ----
+    fig = go.Figure(go.Sunburst(
+        labels=labels,
+        parents=parents,
+        values=values,
+        marker=dict(colors=colors),
+        branchvalues="total",
+        hovertemplate='<b>%{label}</b><br>Count: %{value}<extra></extra>'
+    ))
 
     fig.update_layout(
-        margin=dict(t=50, l=0, r=0, b=0),
-        title_font_size=24
+        margin=dict(t=50, l=0, r=0, b=0), height=750,
+        title=f"Cartographie de {institution} — {period}"
     )
-    
+
     st.plotly_chart(fig, use_container_width=True)
-    
-    st.success("Génération du graphique terminée !")
-    
-    # Affichage des données brutes
-    st.subheader(f"Données agrégées (Top {max_subfields})")
-    st.dataframe(df_chart[['Domain_Name', 'Field_Name', 'Subfield_Name', 'count']])
 
+    st.subheader("Données Utilisées (Top Subfields)")
+    st.dataframe(df_chart[["Domain_Name","Field_Name","Subfield_Name","count"]])
 
-# --- Interface Streamlit ---
+# --------------------------------------------------------
+# INTERFACE STREAMLIT
+# --------------------------------------------------------
+st.set_page_config(page_title="OpenAlex Sunburst", layout="wide")
+st.title("Sunburst chart sur les domaines OpenAlex – Domains / Fields / Subfields")
 
-st.set_page_config(
-    page_title="Sunburst Chart - domaines OpenAlex",
-    layout="wide"
-)
-
-st.title("Générateur de Diagramme Solaire (Sunburst Chart) sur les domaines OpenAlex")
-st.markdown("Entrez l'identifiant OpenAlex d'une ou plusieurs institutions (Labo, Université) et une période pour visualiser la répartition de ses publications par **Domain**, **Field** et **Subfield**.")
-
-# Inputs utilisateur
 col1, col2 = st.columns(2)
+institution = col1.text_input("Identifiant Institution OpenAlex (i...) - séparez deux identifiants avec |", "i4210138474")
+period = col2.text_input("Période (YYYY ou YYYY-YYYY)", "2025")
+max_sf = st.slider("Nombre max de Subfields", 10, 200, 50, 10)
 
-with col1:
-    institution_id = st.text_input(
-        "Identifiant OpenAlex de l'Institution (i...) - séparez plusieurs identifiants par "|" (i4210138474|i4210137520) :",
-        value="i4210117005", 
-        help="Exemple : i4210138474 (CEISAM) ou i4210138474|i4210137520 pour interroger CEISAM ou GeM. Utilisez le format 'iXXXXXXXXXX' pour une institution."
-    )
-
-with col2:
-    time_period = st.text_input(
-        "Année ou Période (YYYY ou YYYY-YYYY) :",
-        value="2020-2023",
-        help="Exemples : 2022, 2020-2023."
-    )
-
-# 2. Curseur pour limiter le nombre de Subfields
-max_subfields = st.slider(
-    'Nombre maximum de Subfields à afficher (pour la lisibilité) :',
-    min_value=10,
-    max_value=200, # Max imposé par la requête API
-    value=50,
-    step=10,
-    help="Utilisez un nombre plus petit pour un graphique plus lisible et concentré sur les sujets dominants."
-)
-
-# 3. Bouton de déclenchement
-if st.button('Générer la Cartographie', type="primary"):
-    if not institution_id.strip() or not time_period.strip():
-        st.error("Veuillez saisir l'identifiant de l'institution et la période.")
-    elif not institution_id.startswith('i'):
-        st.error("L'identifiant OpenAlex d'une institution doit commencer par 'i'.")
-    else:
-        with st.spinner(f'Chargement des données OpenAlex et construction du graphique pour les {max_subfields} principaux subfields...'):
-            get_full_data_and_generate_chart(
-                institution_id.strip(), 
-                time_period.strip(), 
-                max_subfields # Transmission de la valeur du curseur
-            )
+if st.button("Générer la Cartographie"):
+    build_chart(institution.strip(), period.strip(), max_sf)
