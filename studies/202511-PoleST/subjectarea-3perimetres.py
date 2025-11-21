@@ -74,7 +74,7 @@ if df_long.empty:
 # 2. STRUCTURE DE L'APPLICATION STREAMLIT
 # ==============================================================================
 
-st.title("📊 Outil de Visualisation des Données de Publications du Pôle S&T")
+st.title("📊 Outil de Visualisation des disciplines Scopus (research areas) du Pôle S&T")
 st.markdown("Utilisez la barre latérale pour filtrer et comparer les métriques des différents périmètres (A, B, C).")
 
 # --- LÉGENDE DES PÉRIMÈTRES DANS LA BARRE LATÉRALE ---
