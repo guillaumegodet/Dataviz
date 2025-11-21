@@ -7,11 +7,7 @@ import re
 # ==============================================================================
 # 0. CONFIGURATION DE LA PAGE (DOIT ÊTRE LE PREMIER APPEL STREAMLIT !)
 # ==============================================================================
-st.set_page_config(
-    page_title="Analyse des Publications par Périmètre",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+
 
 # Nom du fichier à lire
 FILE_NAME = "studies/202511-PoleST/data/scopus-subjectareas.csv"
@@ -74,7 +70,7 @@ if df_long.empty:
 # 2. STRUCTURE DE L'APPLICATION STREAMLIT
 # ==============================================================================
 
-st.title("📊 Outil de Visualisation des disciplines Scopus (research areas) du Pôle S&T")
+st.title("📊 Visualisation des disciplines Scopus (research areas) du Pôle S&T")
 st.markdown("Utilisez la barre latérale pour filtrer et comparer les métriques des différents périmètres (A, B, C).")
 
 # --- LÉGENDE DES PÉRIMÈTRES DANS LA BARRE LATÉRALE ---
