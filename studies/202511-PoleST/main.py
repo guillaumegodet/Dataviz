@@ -13,7 +13,7 @@ import streamlit as st
 # 0. CONFIGURATION DE LA PAGE (DOIT ÊTRE LE PREMIER APPEL STREAMLIT !)
 # ==============================================================================
 st.set_page_config(
-    page_title="Analyse des Disciplines du Pôle S&T",
+    page_title="Analyse des disciplines du pôle S&T",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -22,10 +22,10 @@ st.set_page_config(
 # 1. PAGE D'ACCUEIL
 # ==============================================================================
 
-st.title("🔬 Tableau de Bord d'Analyse des Disciplines du Pôle S&T")
+st.title("🔬 Analyse des disciplines du pôle S&T")
 
 st.markdown("""
-Bienvenue dans l'application unifiée d'exploration des données de publication du Pôle S&T. 
+Bienvenue dans l'application d'exploration des disciplines associées aux publications du Pôle S&T. 
 Utilisez la **barre latérale** pour naviguer entre les trois modes d'analyse :
 """)
 
