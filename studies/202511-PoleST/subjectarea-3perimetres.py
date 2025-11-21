@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # Nom du fichier à lire
-FILE_NAME = "data/scopus-subjectareas.csv"
+FILE_NAME = "studies/202511-PoleST/data/scopus-subjectareas.csv"
 
 # ==============================================================================
 # 1. FONCTION DE PRÉPARATION DES DONNÉES (Adaptée pour le nouveau CSV)
