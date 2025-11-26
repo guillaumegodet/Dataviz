@@ -31,7 +31,7 @@ Utilisez la **barre latérale** pour naviguer entre les trois modes d'analyse :
 
 st.subheader("Modes d'Exploration :")
 st.markdown("""
-* **1. Comparaison Scopus :** Permet de comparer côte à côte les métriques (Scholarly Output, Citations, etc.) pour une sous-catégorie Scopus spécifique entre les trois périmètres (A, B, C).
+* **1. Comparaison Scopus :** Permet de comparer côte à côte les métriques (Scholarly Output, Citations, etc.) pour une sous-catégorie Scopus spécifique entre les deux périmètres A et B.
 * **2. Sunburst Scopus :** Visualisation en Sunburst de la répartition globale des publications Scopus par Discipline (`Subject Area`) et Sous-catégorie (`Subcategory`) pour un périmètre sélectionné.
 * **3. Sunburst OpenAlex :** Visualisation en Sunburst de la répartition des publications OpenAlex par Domaine (`Domain`), Champ (`Field`) et Sous-champ (`Subfield`) pour un laboratoire ou l'ensemble du Pôle.
 """)
