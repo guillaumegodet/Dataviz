@@ -40,6 +40,5 @@ st.markdown("---")
 st.markdown("### 📌 Définition des Périmètres (Applicable aux analyses Scopus)")
 st.markdown("""
 * **Périmètre A :** Somme des 12 laboratoires.
-* **Périmètre B :** Somme des chercheurs de l'annuaire Nantes U du Pôle.
-* **Périmètre C :** Somme des chercheurs de l'annuaire en retirant les C/EC localisés ou employés par ECN et IMT.
+* **Périmètre B :** Somme des chercheurs employés par le Pôle S&T.
 """)
