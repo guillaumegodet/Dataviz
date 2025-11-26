@@ -153,8 +153,7 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 📌 Définition des Périmètres")
 st.sidebar.markdown("""
 * **Périmètre A :** Somme des 12 laboratoires.
-* **Périmètre B :** Somme des chercheurs de l'annuaire Nantes U du Pôle.
-* **Périmètre C :** Somme des chercheurs de l'annuaire en retirant les C/EC localisés ou employés par ECN et IMT.
+* **Périmètre B :** Somme des chercheurs employés par le Pôle S&T.
 """)
 st.sidebar.markdown("---")
 
