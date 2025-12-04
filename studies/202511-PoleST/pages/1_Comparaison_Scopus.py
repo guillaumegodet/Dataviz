@@ -129,7 +129,7 @@ df_viz = df_long[
 ].sort_values(by='Perimeter')
 
 # Définir l'ordre des périmètres pour le graphique
-perimeter_order = ['Périmètre A', 'Périmètre B', 'Périmètre C']
+perimeter_order = ['Périmètre A', 'Périmètre B']
 df_viz['Perimeter'] = pd.Categorical(df_viz['Perimeter'], categories=perimeter_order, ordered=True)
 df_viz = df_viz.sort_values('Perimeter')
 
