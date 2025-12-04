@@ -1,298 +1,307 @@
-﻿Subject Area;Subcategory;Scholarly Output Périmètre A;Citations Périmètre A;Authors Périmètre A;Citations per Publication Périmètre A;Field-weighted Citation Impact Périmètre A;Scholarly Output Périmètre B;Citations Périmètre B;Authors Périmètre B;Citations per Publication Périmètre B;Field-weighted Citation Impact Périmètre B
-All;-;6288;44534;25224;7,1;1,21;3464;26084;17996;7,5;1,16 
-Engineering;-;2533;18103;9543;7,1;1,32;993;5947;6647;6;1,14
-Engineering;General Engineering;238;1228;952;5,2;1,21;96;420;497;4,4;0,91
-Engineering;Engineering (miscellaneous);142;1151;3869;8,1;1,07;89;587;4037;6,6;1,01
-Engineering;Aerospace Engineering;48;348;234;7,3;1,22;23;120;137;5,2;1,18
-Engineering;Automotive Engineering;48;283;174;5,9;1,25;18;119;62;6,6;1,24
-Engineering;Biomedical Engineering;73;459;409;6,3;0,94;44;329;287;7,5;0,96
-Engineering;Civil and Structural Engineering;224;3251;656;14,5;1,42;111;1179;327;10,6;1,17
-Engineering;Computational Mechanics;51;432;140;8,5;1,02;8;36;35;4,5;0,45
-Engineering;Control and Systems Engineering;442;2788;1328;6,3;1,23;160;783;697;4,9;1,27
-Engineering;Electrical and Electronic Engineering;1011;7724;3463;7,6;1,23;360;2559;1457;7,1;1,3
-Engineering;Industrial and Manufacturing Engineering;248;4098;938;16,5;3,17;85;876;418;10,3;1,37
-Engineering;Mechanical Engineering;495;4460;1410;9;1,29;159;1196;545;7,5;1,17
-Engineering;Mechanics of Materials;337;2214;1068;6,6;1;108;557;410;5,2;0,9
-Engineering;Ocean Engineering;78;695;292;8,9;1,27;43;441;167;10,3;1,39
-Engineering;Safety, Risk, Reliability and Quality;155;635;514;4,1;0,77;82;364;256;4,4;1,04
-Engineering;Media Technology;67;245;217;3,7;1,22;23;102;88;4,4;1,62
-Engineering;Building and Construction;162;2727;448;16,8;1,63;87;1051;262;12,1;1,15
-Engineering;Architecture;34;324;112;9,5;0,92;20;171;67;8,6;0,85
-Computer Science;-;1807;9193;4419;5,1;1,09;753;4085;2294;5,4;0,99
-Computer Science;General Computer Science;299;1299;927;4,3;0,96;155;735;426;4,7;0,86
-Computer Science;Computer Science (miscellaneous);39;231;167;5,9;1,18;19;114;76;6;0,86
-Computer Science;Artificial Intelligence;289;1293;882;4,5;1,22;113;435;340;3,8;1,06
-Computer Science;Computational Theory and Mathematics;78;471;283;6;1,33;49;114;140;2,3;1,3
-Computer Science;Computer Graphics and Computer-Aided Design;83;486;295;5,9;1,12;49;293;154;6;1,31
-Computer Science;Computer Networks and Communications;529;1393;1511;2,6;0,96;147;907;707;6,2;1,01
-Computer Science;Computer Science Applications;537;4148;1736;7,7;1,31;258;1748;805;6,8;1,25
-Computer Science;Computer Vision and Pattern Recognition;168;885;491;5,3;0,91;74;270;238;3,6;0,77
-Computer Science;Hardware and Architecture;207;849;1106;4,1;0,8;88;334;736;3,8;0,84
-Computer Science;Human-Computer Interaction;88;452;289;5,1;0,78;61;209;185;3,4;0,65
-Computer Science;Information Systems;180;789;712;4,4;0,83;84;509;310;6,1;0,99
-Computer Science;Signal Processing;320;1113;1148;3,5;0,92;113;405;616;3,6;0,84
-Computer Science;Software;339;2155;1042;6,4;1,15;181;825;581;4,6;0,67
-Physics and Astronomy;-;1525;10289;13335;6,7;1,22;809;8472;8426;10,5;1,4
-Physics and Astronomy;General Physics and Astronomy;247;2565;6052;10,4;1,59;188;3351;4299;17,8;1,93
-Physics and Astronomy;Physics and Astronomy (miscellaneous);68;533;3014;7,8;1,25;52;369;3904;7,1;1,44
-Physics and Astronomy;Acoustics and Ultrasonics;31;444;114;14,3;2,25;3;7;24;2,3;0,91
-Physics and Astronomy;Astronomy and Astrophysics;115;1274;5701;11,1;1,75;60;760;3014;12,7;1,83
-Physics and Astronomy;Condensed Matter Physics;330;1796;1303;5,4;0,84;167;983;698;5,9;0,8
-Physics and Astronomy;Instrumentation;415;1209;3325;2,9;1,02;100;624;3672;6,2;1,43
-Physics and Astronomy;Nuclear and High Energy Physics;254;2241;6458;8,8;1,27;212;2607;4704;12,3;1,5
-Physics and Astronomy;Atomic and Molecular Physics, and Optics;128;658;1383;5,1;0,86;40;208;248;5,2;0,71
-Physics and Astronomy;Radiation;166;448;515;2,7;1,3;26;148;172;5,7;1,29
-Physics and Astronomy;Statistical and Nonlinear Physics;30;99;89;3,3;0,85;8;9;16;1,1;0,19
-Physics and Astronomy;Surfaces and Interfaces;62;451;259;7,3;1;49;406;217;8,3;1,13
-Mathematics;-;1145;5827;4855;5,1;1,19;541;2644;3553;4,9;1,18
-Mathematics;General Mathematics;133;395;299;3;1,86;81;283;172;3,5;2,42
-Mathematics;Mathematics (miscellaneous);6;9;26;1,5;0,57;3;6;14;2;0,42
-Mathematics;Algebra and Number Theory;16;44;35;2,8;1,65;6;6;14;1;1,48
-Mathematics;Analysis;60;155;129;2,6;0,94;28;132;74;4,7;1,28
-Mathematics;Applied Mathematics;274;1545;794;5,6;1,14;114;571;340;5;1,06
-Mathematics;Computational Mathematics;83;301;263;3,6;0,83;31;99;76;3,2;0,72
-Mathematics;Control and Optimization;287;981;817;3,4;0,96;111;437;342;3,9;1,03
-Mathematics;Discrete Mathematics and Combinatorics;24;55;64;2,3;0,85;16;38;47;2,4;1,05
-Mathematics;Geometry and Topology;25;34;48;1,4;1,08;12;15;23;1,3;1,56
-Mathematics;Logic;3;3;16;1;0,15;4;8;11;2;0,25
-Mathematics;Mathematical Physics;46;256;2219;5,6;1,24;23;110;2388;4,8;1
-Mathematics;Modeling and Simulation;331;2522;950;7,6;1,26;117;874;352;7,5;0,85
-Mathematics;Numerical Analysis;49;216;157;4,4;0,8;23;84;61;3,7;0,6
-Mathematics;Statistics and Probability;70;292;254;4,2;0,73;57;243;132;4,3;0,66
-Mathematics;Theoretical Computer Science;170;459;513;2,7;0,85;114;493;274;4,3;0,84
-Materials Science;-;1066;6710;3611;6,3;0,84;505;3602;1889;7,1;0,81
-Materials Science;General Materials Science;474;4077;1960;8,6;0,93;226;2002;1042;8,9;0,87
-Materials Science;Materials Science (miscellaneous);68;208;367;3,1;0,81;19;99;136;5,2;0,69
-Materials Science;Biomaterials;34;124;206;3,6;0,77;23;97;154;4,2;1,02
-Materials Science;Ceramics and Composites;111;579;478;5,2;0,71;59;284;224;4,8;0,57
-Materials Science;Electronic, Optical and Magnetic Materials;306;1018;1168;3,3;0,69;108;428;566;4;0,53
-Materials Science;Materials Chemistry;234;1242;989;5,3;0,64;142;812;591;5,7;0,65
-Materials Science;Metals and Alloys;73;343;406;4,7;0,62;34;141;203;4,1;0,49
-Materials Science;Polymers and Plastics;70;395;297;5,6;0,64;47;271;202;5,8;0,66
-Materials Science;Surfaces, Coatings and Films;131;804;552;6,1;0,78;88;621;367;7,1;0,86
-Chemistry;-;771;5836;3275;7,6;0,83;583;4109;3315;7;0,73
-Chemistry;General Chemistry;324;2634;1692;8,1;0,87;232;1721;2123;7,4;0,74
-Chemistry;Chemistry (miscellaneous);40;288;201;7,2;0,87;29;210;154;7,2;0,55
-Chemistry;Analytical Chemistry;96;807;558;8,4;0,67;69;557;374;8,1;0,66
-Chemistry;Electrochemistry;70;274;341;3,9;0,45;56;175;263;3,1;0,37
-Chemistry;Inorganic Chemistry;59;257;340;4,4;0,51;54;242;336;4,5;0,5
-Chemistry;Organic Chemistry;143;977;703;6,8;0,74;132;858;691;6,5;0,71
-Chemistry;Physical and Theoretical Chemistry;193;1725;874;8,9;0,96;145;1295;645;8,9;0,95
-Chemistry;Spectroscopy;43;307;308;7,1;0,66;34;199;215;5,9;0,39
-Energy;-;518;5127;1840;9,9;1,15;271;2535;963;9,4;1,2
-Energy;General Energy;70;1971;260;28,2;2,22;33;682;137;20,7;1,54
-Energy;Energy (miscellaneous);59;628;225;10,6;0,86;31;298;129;9,6;0,87
-Energy;Energy Engineering and Power Technology;295;3065;1037;10,4;1,24;161;1499;593;9,3;1,35
-Energy;Fuel Technology;95;2181;332;23;1,71;53;834;198;15,7;1,28
-Energy;Nuclear Energy and Engineering;53;307;310;5,8;1,11;22;105;110;4,8;1,63
-Energy;Renewable Energy, Sustainability and the Environment;296;3901;1105;13,2;1,23;173;2118;664;12,2;1,15
-Earth and Planetary Sciences;-;478;3605;6166;7,5;1,33;230;1414;2268;6,1;1,01
-Earth and Planetary Sciences;General Earth and Planetary Sciences;86;444;486;5,2;0,96;63;288;354;4,6;0,6
-Earth and Planetary Sciences;Earth and Planetary Sciences (miscellaneous);81;803;728;9,9;1,89;29;197;301;6,8;0,94
-Earth and Planetary Sciences;Atmospheric Science;9;163;99;18,1;0,78;3;5;20;1,7;0,31
-Earth and Planetary Sciences;Computers in Earth Sciences;12;71;63;5,9;0,94;8;134;35;16,8;2,05
-Earth and Planetary Sciences;Earth-Surface Processes;37;328;255;8,9;1,31;15;68;74;4,5;0,71
-Earth and Planetary Sciences;Economic Geology;3;13;23;4,3;1,29;#N/A;#N/A;#N/A;#N/A;#N/A
-Earth and Planetary Sciences;Geochemistry and Petrology;127;1047;817;8,2;1,49;45;342;283;7,6;1,25
-Earth and Planetary Sciences;Geology;64;353;427;5,5;1,4;35;231;203;6,6;1,16
-Earth and Planetary Sciences;Geophysics;111;1071;747;9,6;1,64;39;370;266;9,5;1,22
-Earth and Planetary Sciences;Geotechnical Engineering and Engineering Geology;64;396;278;6,2;1,08;29;133;122;4,6;0,95
-Earth and Planetary Sciences;Oceanography;35;200;274;5,7;1,11;21;127;174;6;1,54
-Earth and Planetary Sciences;Paleontology;18;35;98;1,9;0,49;5;14;30;2,8;0,54
-Earth and Planetary Sciences;Space and Planetary Science;151;1802;4734;11,9;1,93;55;494;1420;9;1,33
-Earth and Planetary Sciences;Stratigraphy;7;28;37;4;0,65;6;19;36;3,2;0,46
-Chemical Engineering;-;426;2668;2627;6,3;0,76;259;1443;2038;5,6;0,62
-Chemical Engineering;General Chemical Engineering;153;930;713;6,1;0,64;90;393;479;4,4;0,51
-Chemical Engineering;Chemical Engineering (miscellaneous);27;167;147;6,2;0,57;16;133;79;8,3;0,73
-Chemical Engineering;Bioengineering;49;247;242;5;0,79;23;145;166;6,3;0,85
-Chemical Engineering;Catalysis;109;800;623;7,3;0,69;86;540;526;6,3;0,56
-Chemical Engineering;Chemical Health and Safety;2;5;12;2,5;0,71;1;5;7;5;1,42
-Chemical Engineering;Colloid and Surface Chemistry;11;88;81;8;0,58;6;39;49;6,5;0,49
-Chemical Engineering;Filtration and Separation;12;74;57;6,2;0,49;5;32;19;6,4;0,52
-Chemical Engineering;Fluid Flow and Transfer Processes;92;460;1108;5;0,98;53;258;953;4,9;0,74
-Chemical Engineering;Process Chemistry and Technology;64;343;308;5,4;0,59;38;227;189;6;0,67
-Environmental Science;-;342;3912;1833;11,4;1,16;199;1847;1128;9,3;1,12
-Environmental Science;General Environmental Science;40;294;206;7,4;1,2;28;136;183;4,9;1,26
-Environmental Science;Environmental Science (miscellaneous);34;115;276;3,4;0,87;25;121;187;4,8;1,08
-Environmental Science;Ecological Modeling;9;95;52;10,6;1,01;6;9;18;1,5;0,2
-Environmental Science;Ecology;24;344;231;14,3;1,35;29;138;266;4,8;0,81
-Environmental Science;Environmental Chemistry;90;726;633;8,1;0,8;48;414;310;8,6;0,9
-Environmental Science;Environmental Engineering;78;797;459;10,2;0,95;42;476;241;11,3;0,97
-Environmental Science;Global and Planetary Change;19;192;161;10,1;1,43;12;95;87;7,9;1,28
-Environmental Science;Health, Toxicology and Mutagenesis;36;238;294;6,6;0,76;27;210;223;7,8;0,99
-Environmental Science;Management, Monitoring, Policy and Law;48;1578;214;32,9;2,34;24;595;106;24,8;1,98
-Environmental Science;Nature and Landscape Conservation;7;155;38;22,1;0,98;4;20;42;5;0,67
-Environmental Science;Pollution;89;2054;521;23,1;1,59;43;766;257;17,8;1,12
-Environmental Science;Waste Management and Disposal;61;475;357;7,8;0,88;34;424;212;12,5;1,14
-Environmental Science;Water Science and Technology;45;315;271;7;1,11;22;214;107;9,7;1,06
-Biochemistry, Genetics and Molecular Biology;-;314;2751;2057;8,8;1,02;314;2361;3203;7,5;0,85
-Biochemistry, Genetics and Molecular Biology;General Biochemistry,Genetics and Molecular Biology;50;931;620;18,6;2,01;79;667;1702;8,4;0,94
-Biochemistry, Genetics and Molecular Biology;Biochemistry, Genetics and Molecular Biology (miscellaneous);11;88;77;8;1,16;5;24;64;4,8;0,65
-Biochemistry, Genetics and Molecular Biology;Biochemistry;122;755;680;6,2;0,64;90;581;571;6,5;0,68
-Biochemistry, Genetics and Molecular Biology;Biophysics;26;161;113;6,2;0,8;20;170;106;8,5;1,24
-Biochemistry, Genetics and Molecular Biology;Biotechnology;50;335;286;6,7;0,78;32;250;254;7,8;0,98
-Biochemistry, Genetics and Molecular Biology;Cancer Research;16;94;158;5,9;0,82;17;139;210;8,2;1,04
-Biochemistry, Genetics and Molecular Biology;Cell Biology;15;152;171;10,1;1,43;24;182;233;7,6;0,77
-Biochemistry, Genetics and Molecular Biology;Clinical Biochemistry;11;59;90;5,4;0,76;10;94;94;9,4;0,86
-Biochemistry, Genetics and Molecular Biology;Developmental Biology;2;6;24;3;0,37;4;27;24;6,8;0,47
+﻿Subject Area;Subcategory;Scholarly Output;Citations;Authors;Citations per Publication;Field-weighted Citation Impact;Scholarly Output Périmètre B;Citations Périmètre B;Authors Périmètre B;Citations per Publication  Périmètre B;Field-weighted Citation Impact  Périmètre B
+All;-;5988;40790;15890;6,8;1,16;3108;19993;9995;6,4;1,01
+Engineering;-;2494;17774;5997;7,1;1,31;952;5749;2785;6;1,13
+Engineering;General Engineering;238;1248;952;5,2;1,22;96;431;497;4,5;0,93
+Engineering;Engineering (miscellaneous);106;779;480;7,3;0,84;50;315;258;6,3;0,56
+Engineering;Aerospace Engineering;48;354;234;7,4;1,23;23;122;137;5,3;1,16
+Engineering;Automotive Engineering;48;288;174;6;1,26;18;120;62;6,7;1,23
+Engineering;Biomedical Engineering;73;467;409;6,4;1,04;44;330;287;7,5;0,95
+Engineering;Civil and Structural Engineering;224;3286;656;14,7;1,41;111;1192;327;10,7;1,16
+Engineering;Computational Mechanics;51;439;140;8,6;1,02;8;36;35;4,5;0,45
+Engineering;Control and Systems Engineering;441;2822;1044;6,4;1,24;159;792;413;5;1,26
+Engineering;Electrical and Electronic Engineering;1008;7640;2561;7,6;1,22;358;2588;1106;7,2;1,31
+Engineering;Industrial and Manufacturing Engineering;247;4152;848;16,8;3,18;84;890;340;10,6;1,37
+Engineering;Mechanical Engineering;495;4510;1410;9,1;1,28;159;1218;545;7,7;1,18
+Engineering;Mechanics of Materials;337;2240;1068;6,6;1;108;567;410;5,3;0,91
+Engineering;Ocean Engineering;78;702;292;9;1,26;43;445;167;10,3;1,4
+Engineering;Safety, Risk, Reliability and Quality;155;637;514;4,1;0,76;82;366;256;4,5;1,01
+Engineering;Media Technology;67;249;217;3,7;1,21;23;102;88;4,4;1,58
+Engineering;Building and Construction;162;2756;448;17;1,63;87;1065;262;12,2;1,14
+Engineering;Architecture;34;325;112;9,6;0,91;20;172;67;8,6;0,84
+Computer Science;-;1802;8909;3838;4,9;1,08;748;4126;1762;5,5;0,99
+Computer Science;General Computer Science;299;1310;927;4,4;0,96;155;741;426;4,8;0,85
+Computer Science;Computer Science (miscellaneous);39;234;167;6;1,19;19;116;76;6,1;0,86
+Computer Science;Artificial Intelligence;289;1303;882;4,5;1,19;113;439;340;3,9;1,04
+Computer Science;Computational Theory and Mathematics;78;478;283;6,1;1,35;49;117;140;2,4;1,32
+Computer Science;Computer Graphics and Computer-Aided Design;83;489;295;5,9;1,11;49;297;154;6,1;1,31
+Computer Science;Computer Networks and Communications;528;1415;1226;2,7;0,99;146;925;423;6,3;1,03
+Computer Science;Computer Science Applications;535;3820;1580;7,1;1,24;258;1769;805;6,9;1,25
+Computer Science;Computer Vision and Pattern Recognition;168;894;491;5,3;0,9;74;272;238;3,7;0,76
+Computer Science;Hardware and Architecture;204;850;679;4,2;0,79;84;333;274;4;0,84
+Computer Science;Human-Computer Interaction;88;454;289;5,2;0,78;61;211;185;3,5;0,65
+Computer Science;Information Systems;180;801;712;4,5;0,86;84;516;310;6,1;0,99
+Computer Science;Signal Processing;319;1126;864;3,5;0,95;112;410;332;3,7;0,84
+Computer Science;Software;338;2010;989;5,9;1,08;180;834;506;4,6;0,67
+Physics and Astronomy;-;1303;6962;4834;5,3;1,05;516;3007;2474;5,8;0,95
+Physics and Astronomy;General Physics and Astronomy;215;1674;1211;7,8;1,25;122;562;711;4,6;0,72
+Physics and Astronomy;Physics and Astronomy (miscellaneous);33;154;189;4,7;1,1;13;96;144;7,4;1,01
+Physics and Astronomy;Acoustics and Ultrasonics;31;450;114;14,5;2,26;3;7;24;2,3;0,85
+Physics and Astronomy;Astronomy and Astrophysics;92;634;647;6,9;1,19;39;344;389;8,8;1,27
+Physics and Astronomy;Condensed Matter Physics;330;1813;1303;5,5;0,84;167;994;698;6;0,81
+Physics and Astronomy;Instrumentation;403;978;1152;2,4;0,97;80;386;417;4,8;1,2
+Physics and Astronomy;Nuclear and High Energy Physics;132;1009;843;7,6;1,12;51;544;366;10,7;1,45
+Physics and Astronomy;Atomic and Molecular Physics, and Optics;124;587;583;4,7;0,83;40;210;248;5,3;0,73
+Physics and Astronomy;Radiation;166;449;515;2,7;1,33;26;150;172;5,8;1,27
+Physics and Astronomy;Statistical and Nonlinear Physics;30;101;89;3,4;0,84;8;9;16;1,1;0,19
+Physics and Astronomy;Surfaces and Interfaces;62;453;259;7,3;0,99;49;409;217;8,3;1,13
+Mathematics;-;1137;5745;2816;5,1;1,18;530;2595;1202;4,9;1,16
+Mathematics;General Mathematics;133;397;299;3;1,8;81;285;172;3,5;2,35
+Mathematics;Mathematics (miscellaneous);6;9;26;1,5;0,55;3;6;14;2;0,41
+Mathematics;Algebra and Number Theory;16;44;35;2,8;1,62;6;6;14;1;1,43
+Mathematics;Analysis;60;156;129;2,6;0,94;28;132;74;4,7;1,25
+Mathematics;Applied Mathematics;274;1555;794;5,7;1,13;114;575;340;5;1,05
+Mathematics;Computational Mathematics;83;303;263;3,7;0,83;31;100;76;3,2;0,71
+Mathematics;Control and Optimization;287;992;817;3,5;0,96;111;443;342;4;1,05
+Mathematics;Discrete Mathematics and Combinatorics;24;55;64;2,3;0,83;16;38;47;2,4;1,02
+Mathematics;Geometry and Topology;25;34;48;1,4;1,04;12;15;23;1,3;1,51
+Mathematics;Logic;3;3;16;1;0,14;4;8;11;2;0,25
+Mathematics;Mathematical Physics;38;115;180;3;0,81;12;33;36;2,8;0,48
+Mathematics;Modeling and Simulation;331;2550;950;7,7;1,28;117;886;352;7,6;0,86
+Mathematics;Numerical Analysis;49;216;157;4,4;0,79;23;84;61;3,7;0,59
+Mathematics;Statistics and Probability;70;295;254;4,2;0,75;57;246;132;4,3;0,67
+Mathematics;Theoretical Computer Science;170;469;513;2,8;0,87;114;497;274;4,4;0,83
+Materials Science;-;1066;6812;3611;6,4;0,84;505;3665;1889;7,3;0,82
+Materials Science;General Materials Science;474;4137;1960;8,7;0,94;226;2039;1042;9;0,89
+Materials Science;Materials Science (miscellaneous);68;211;367;3,1;0,79;19;100;136;5,3;0,69
+Materials Science;Biomaterials;34;126;206;3,7;0,76;23;99;154;4,3;1,02
+Materials Science;Ceramics and Composites;111;592;478;5,3;0,72;59;290;224;4,9;0,58
+Materials Science;Electronic, Optical and Magnetic Materials;306;1035;1168;3,4;0,71;108;438;566;4,1;0,55
+Materials Science;Materials Chemistry;234;1268;989;5,4;0,64;142;833;591;5,9;0,65
+Materials Science;Metals and Alloys;73;347;406;4,8;0,62;34;144;203;4,2;0,49
+Materials Science;Polymers and Plastics;70;406;297;5,8;0,64;47;279;202;5,9;0,67
+Materials Science;Surfaces, Coatings and Films;131;813;552;6,2;0,78;88;628;367;7,1;0,86
+Chemistry;-;769;5613;3114;7,3;0,79;582;3975;2316;6,8;0,71
+Chemistry;General Chemistry;324;2660;1692;8,2;0,87;231;1556;1123;6,7;0,69
+Chemistry;Chemistry (miscellaneous);40;292;201;7,3;0,86;29;211;154;7,3;0,54
+Chemistry;Analytical Chemistry;95;739;496;7,8;0,61;69;562;374;8,1;0,65
+Chemistry;Electrochemistry;70;281;341;4;0,45;56;179;263;3,2;0,38
+Chemistry;Inorganic Chemistry;59;261;340;4,4;0,52;54;248;336;4,6;0,52
+Chemistry;Organic Chemistry;143;995;703;7;0,74;132;870;691;6,6;0,71
+Chemistry;Physical and Theoretical Chemistry;192;1532;773;8;0,85;145;1311;645;9;0,96
+Chemistry;Spectroscopy;42;232;246;5,5;0,52;34;203;215;6;0,42
+Energy;-;518;5206;1840;10,1;1,15;271;2577;963;9,5;1,21
+Energy;General Energy;70;1991;260;28,4;2,22;33;691;137;20,9;1,54
+Energy;Energy (miscellaneous);59;638;225;10,8;0,86;31;299;129;9,6;0,86
+Energy;Energy Engineering and Power Technology;295;3113;1037;10,6;1,25;161;1523;593;9,5;1,37
+Energy;Fuel Technology;95;2208;332;23,2;1,71;53;844;198;15,9;1,27
+Energy;Nuclear Energy and Engineering;53;313;310;5,9;1,11;22;108;110;4,9;1,63
+Energy;Renewable Energy, Sustainability and the Environment;296;3957;1105;13,4;1,24;173;2154;664;12,5;1,18
+Earth and Planetary Sciences;-;453;2838;2152;6,3;1,12;224;1359;1160;6,1;0,96
+Earth and Planetary Sciences;General Earth and Planetary Sciences;85;451;405;5,3;0,96;62;295;271;4,8;0,62
+Earth and Planetary Sciences;Earth and Planetary Sciences (miscellaneous);76;640;596;8,4;1,67;28;192;228;6,9;0,91
+Earth and Planetary Sciences;Atmospheric Science;9;165;99;18,3;0,78;3;5;20;1,7;0,31
+Earth and Planetary Sciences;Computers in Earth Sciences;12;72;63;6;1;8;134;35;16,8;2,03
+Earth and Planetary Sciences;Earth-Surface Processes;36;324;200;9;1,23;15;71;74;4,7;0,82
+Earth and Planetary Sciences;Economic Geology;3;13;23;4,3;1,26;#N/A;#N/A;#N/A;#N/A;#N/A
+Earth and Planetary Sciences;Geochemistry and Petrology;123;896;742;7,3;1,35;45;347;283;7,7;1,24
+Earth and Planetary Sciences;Geology;63;343;385;5,4;1,37;35;231;203;6,6;1,14
+Earth and Planetary Sciences;Geophysics;107;921;673;8,6;1,5;39;376;266;9,6;1,26
+Earth and Planetary Sciences;Geotechnical Engineering and Engineering Geology;63;385;227;6,1;1,05;29;133;122;4,6;0,92
+Earth and Planetary Sciences;Oceanography;35;210;274;6;1,17;21;127;174;6;1,5
+Earth and Planetary Sciences;Paleontology;18;39;98;2,2;0,63;5;14;30;2,8;0,54
+Earth and Planetary Sciences;Space and Planetary Science;130;1031;879;7,9;1,31;51;433;453;8,5;1,15
+Earth and Planetary Sciences;Stratigraphy;7;28;37;4;0,64;6;19;36;3,2;0,45
+Chemical Engineering;-;423;2694;1809;6,4;0,77;257;1453;1260;5,7;0,63
+Chemical Engineering;General Chemical Engineering;153;947;713;6,2;0,65;90;402;479;4,5;0,51
+Chemical Engineering;Chemical Engineering (miscellaneous);27;169;147;6,3;0,74;16;134;79;8,4;0,72
+Chemical Engineering;Bioengineering;49;252;242;5,1;0,9;23;147;166;6,4;0,84
+Chemical Engineering;Catalysis;109;809;623;7,4;0,74;86;546;526;6,3;0,57
+Chemical Engineering;Chemical Health and Safety;2;6;12;3;3,06;1;5;7;5;1,38
+Chemical Engineering;Colloid and Surface Chemistry;11;89;81;8,1;1,01;6;39;49;6,5;0,49
+Chemical Engineering;Filtration and Separation;12;76;57;6,3;0,88;5;32;19;6,4;0,51
+Chemical Engineering;Fluid Flow and Transfer Processes;89;451;290;5,1;1,06;51;247;175;4,8;0,75
+Chemical Engineering;Process Chemistry and Technology;64;352;308;5,5;0,68;38;232;189;6,1;0,67
+Environmental Science;-;342;3971;1833;11,6;1,17;199;1877;1128;9,4;1,14
+Environmental Science;General Environmental Science;40;304;206;7,6;1,21;28;144;183;5,1;1,31
+Environmental Science;Environmental Science (miscellaneous);34;117;276;3,4;0,86;25;122;187;4,9;1,06
+Environmental Science;Ecological Modeling;9;99;52;11;1,03;6;9;18;1,5;0,2
+Environmental Science;Ecology;24;356;231;14,8;1,45;29;142;266;4,9;0,89
+Environmental Science;Environmental Chemistry;90;736;633;8,2;0,8;48;414;310;8,6;0,88
+Environmental Science;Environmental Engineering;78;805;459;10,3;0,95;42;479;241;11,4;0,98
+Environmental Science;Global and Planetary Change;19;197;161;10,4;1,45;12;95;87;7,9;1,26
+Environmental Science;Health, Toxicology and Mutagenesis;36;239;294;6,6;0,75;27;212;223;7,9;0,98
+Environmental Science;Management, Monitoring, Policy and Law;48;1595;214;33,2;2,33;24;605;106;25,2;1,98
+Environmental Science;Nature and Landscape Conservation;7;158;38;22,6;0,99;4;21;42;5,3;0,69
+Environmental Science;Pollution;89;2078;521;23,3;1,6;43;773;257;18;1,11
+Environmental Science;Waste Management and Disposal;61;484;357;7,9;0,87;34;428;212;12,6;1,13
+Environmental Science;Water Science and Technology;45;322;271;7,2;1,11;22;214;107;9,7;1,04
+Biochemistry, Genetics and Molecular Biology;-;313;2756;1962;8,8;1,02;310;2175;1997;7;0,81
+Biochemistry, Genetics and Molecular Biology;General Biochemistry,Genetics and Molecular Biology;49;910;515;18,6;1,96;77;463;596;6;0,77
+Biochemistry, Genetics and Molecular Biology;Biochemistry, Genetics and Molecular Biology (miscellaneous);11;88;77;8;1,14;5;24;64;4,8;0,64
+Biochemistry, Genetics and Molecular Biology;Biochemistry;122;766;680;6,3;0,64;90;589;571;6,5;0,68
+Biochemistry, Genetics and Molecular Biology;Biophysics;26;162;113;6,2;0,8;20;171;106;8,6;1,26
+Biochemistry, Genetics and Molecular Biology;Biotechnology;50;337;286;6,7;0,79;32;251;254;7,8;0,96
+Biochemistry, Genetics and Molecular Biology;Cancer Research;16;95;158;5,9;0,81;17;141;210;8,3;1,03
+Biochemistry, Genetics and Molecular Biology;Cell Biology;15;152;171;10,1;1,41;24;186;233;7,8;0,79
+Biochemistry, Genetics and Molecular Biology;Clinical Biochemistry;11;61;90;5,5;0,78;10;94;94;9,4;0,86
+Biochemistry, Genetics and Molecular Biology;Developmental Biology;2;6;24;3;0,37;4;28;24;7;0,48
 Biochemistry, Genetics and Molecular Biology;Endocrinology;1;0;14;0;0;8;9;68;1,1;0,28
-Biochemistry, Genetics and Molecular Biology;Genetics;28;178;254;6,4;0,95;39;213;361;5,5;0,8
-Biochemistry, Genetics and Molecular Biology;Molecular Biology;45;165;307;3,7;0,8;60;364;405;6,1;0,71
-Biochemistry, Genetics and Molecular Biology;Molecular Medicine;31;245;235;7,9;0,8;32;258;298;8,1;0,96
-Biochemistry, Genetics and Molecular Biology;Physiology;9;46;55;5,1;0,59;11;147;88;13,4;1,33
-Biochemistry, Genetics and Molecular Biology;Structural Biology;10;24;86;2,4;0,48;7;18;57;2,6;0,37
-Decision Sciences;-;234;3055;760;13,1;3,06;92;378;255;4,1;0,64
-Decision Sciences;General Decision Sciences;6;655;18;109,2;10,19;1;1;2;1;0,7
-Decision Sciences;Decision Sciences (miscellaneous);13;48;51;3,7;2,46;8;8;23;1;0,46
-Decision Sciences;Information Systems and Management;112;498;353;4,4;0,77;40;116;119;2,9;0,46
-Decision Sciences;Management Science and Operations Research;115;2787;335;24,2;5,43;30;249;87;8,3;0,81
-Decision Sciences;Statistics, Probability and Uncertainty;30;113;143;3,8;0,73;32;109;92;3,4;0,8
-Agricultural and Biological Sciences;-;220;1536;1299;7;1,15;204;1078;1099;5,3;1,01
-Agricultural and Biological Sciences;General Agricultural and Biological Sciences;23;119;162;5,2;1,13;47;82;142;1,7;0,47
-Agricultural and Biological Sciences;Agricultural and Biological Sciences (miscellaneous);5;35;56;7;1,58;10;65;83;6,5;1,17
-Agricultural and Biological Sciences;Agronomy and Crop Science;21;119;105;5,7;1,21;22;97;128;4,4;1,2
-Agricultural and Biological Sciences;Animal Science and Zoology;4;10;96;2,5;0,54;17;36;185;2,1;0,68
-Agricultural and Biological Sciences;Aquatic Science;26;202;215;7,8;1,37;40;218;203;5,5;1,34
-Agricultural and Biological Sciences;Ecology, Evolution, Behavior and Systematics;50;427;508;8,5;1,33;47;206;414;4,4;0,95
-Agricultural and Biological Sciences;Food Science;72;564;236;7,8;0,97;13;74;91;5,7;0,94
-Agricultural and Biological Sciences;Forestry;4;10;23;2,5;1,97;4;8;40;2;1,61
-Agricultural and Biological Sciences;Horticulture;4;17;26;4,3;1,91;2;17;15;8,5;3,82
-Agricultural and Biological Sciences;Insect Science;3;20;10;6,7;3,57;6;22;24;3,7;0,9
-Agricultural and Biological Sciences;Plant Science;33;193;203;5,8;0,96;30;291;218;9,7;1,24
-Agricultural and Biological Sciences;Soil Science;15;132;102;8,8;1,54;14;152;84;10,9;1,37
-Medicine;-;215;2051;1464;9,5;1,68;233;2079;2894;8,9;1,57
-Medicine;General Medicine;14;450;146;32,1;6,1;50;115;222;2,3;0,46
-Medicine;Medicine (miscellaneous);11;89;79;8,1;1,18;16;181;149;11,3;1,13
-Medicine;Anesthesiology and Pain Medicine;1;0;6;0;0;1;11;23;11;3,91
-Medicine;Biochemistry (medical);2;22;23;11;1,96;2;22;33;11;1,96
-Medicine;Cardiology and Cardiovascular Medicine;5;34;64;6,8;1,15;24;647;358;27;6,1
-Medicine;Critical Care and Intensive Care Medicine;1;18;11;18;1,68;1;1;8;1;0,88
-Medicine;Complementary and Alternative Medicine;2;15;21;7,5;1,48;3;21;30;7;1,46
-Medicine;Dermatology;1;4;18;4;0,57;#N/A;#N/A;#N/A;#N/A;#N/A
-Medicine;Endocrinology, Diabetes and Metabolism;11;118;93;10,7;0,97;17;148;174;8,7;0,88
-Medicine;Epidemiology;2;6;11;3;0,37;3;24;17;8;1,06
+Biochemistry, Genetics and Molecular Biology;Genetics;28;185;254;6,6;1,11;38;216;310;5,7;0,8
+Biochemistry, Genetics and Molecular Biology;Molecular Biology;45;171;307;3,8;0,87;60;374;405;6,2;0,76
+Biochemistry, Genetics and Molecular Biology;Molecular Medicine;31;252;235;8,1;0,84;31;259;242;8,4;0,98
+Biochemistry, Genetics and Molecular Biology;Physiology;9;47;55;5,2;0,59;11;150;88;13,6;1,34
+Biochemistry, Genetics and Molecular Biology;Structural Biology;10;25;86;2,5;0,55;7;18;57;2,6;0,36
+Decision Sciences;-;235;3100;672;13,2;3,1;92;380;255;4,1;0,64
+Decision Sciences;General Decision Sciences;6;659;18;109,8;10,25;1;1;2;1;0,66
+Decision Sciences;Decision Sciences (miscellaneous);13;50;51;3,8;2,5;8;9;23;1,1;0,49
+Decision Sciences;Information Systems and Management;112;502;353;4,5;0,76;40;117;119;2,9;0,46
+Decision Sciences;Management Science and Operations Research;116;2828;248;24,4;5,48;30;249;87;8,3;0,8
+Decision Sciences;Statistics, Probability and Uncertainty;30;115;143;3,8;0,77;32;110;92;3,4;0,8
+Agricultural and Biological Sciences;-;218;1551;1170;7,1;1,14;203;1096;1025;5,4;1,01
+Agricultural and Biological Sciences;General Agricultural and Biological Sciences;23;119;162;5,2;1,12;47;83;142;1,8;0,47
+Agricultural and Biological Sciences;Agricultural and Biological Sciences (miscellaneous);5;35;56;7;1,55;10;66;83;6,6;1,16
+Agricultural and Biological Sciences;Agronomy and Crop Science;21;120;105;5,7;1,18;22;97;128;4,4;1,17
+Agricultural and Biological Sciences;Animal Science and Zoology;3;9;21;3;0,65;16;35;110;2,2;0,69
+Agricultural and Biological Sciences;Aquatic Science;26;211;215;8,1;1,37;40;221;203;5,5;1,32
+Agricultural and Biological Sciences;Ecology, Evolution, Behavior and Systematics;48;431;379;9;1,3;46;215;340;4,7;1,01
+Agricultural and Biological Sciences;Food Science;72;570;236;7,9;0,98;13;75;91;5,8;0,94
+Agricultural and Biological Sciences;Forestry;4;10;23;2,5;1,89;4;8;40;2;1,55
+Agricultural and Biological Sciences;Horticulture;4;17;26;4,3;1,84;2;17;15;8,5;3,68
+Agricultural and Biological Sciences;Insect Science;3;20;10;6,7;3,44;6;23;24;3,8;0,91
+Agricultural and Biological Sciences;Plant Science;33;194;203;5,9;0,94;30;296;218;9,9;1,23
+Agricultural and Biological Sciences;Soil Science;15;133;102;8,9;1,54;14;152;84;10,9;1,36
+Medicine;-;215;2071;1464;9,6;1,71;227;1586;1526;7;0,99
+Medicine;General Medicine;14;455;146;32,5;6,07;50;116;222;2,3;0,46
+Medicine;Medicine (miscellaneous);11;89;79;8,1;1,16;16;182;149;11,4;1,12
+Medicine;Anesthesiology and Pain Medicine;1;0;6;0;0;1;11;23;11;3,83
+Medicine;Biochemistry (medical);2;22;23;11;1,92;2;22;33;11;1,92
+Medicine;Cardiology and Cardiovascular Medicine;5;34;64;6,8;1,14;22;161;190;7,3;0,88
+Medicine;Critical Care and Intensive Care Medicine;1;19;11;19;1,67;1;1;8;1;0,83
+Medicine;Complementary and Alternative Medicine;2;15;21;7,5;1,44;3;21;30;7;1,42
+Medicine;Dermatology;1;4;18;4;0,56;#N/A;#N/A;#N/A;#N/A;#N/A
+Medicine;Endocrinology, Diabetes and Metabolism;11;121;93;11;1,01;17;149;174;8,8;0,88
+Medicine;Epidemiology;2;6;11;3;0,36;3;24;17;8;1,05
 Medicine;Gastroenterology;1;0;10;0;0;#N/A;#N/A;#N/A;#N/A;#N/A
-Medicine;Genetics (clinical);2;3;26;1,5;1,48;4;17;84;4,3;1,13
+Medicine;Genetics (clinical);2;4;26;2;2,11;3;15;33;5;0,55
 Medicine;Geriatrics and Gerontology;1;0;10;0;0;1;0;10;0;0
-Medicine;Health Informatics;32;304;146;9,5;1,44;22;249;103;11,3;1,21
-Medicine;Hematology;5;24;41;4,8;1,35;5;27;72;5,4;1,12
-Medicine;Histology;5;93;35;18,6;2,35;#N/A;#N/A;#N/A;#N/A;#N/A
-Medicine;Immunology and Allergy;3;30;27;10;0,83;14;128;176;9,1;0,92
-Medicine;Internal Medicine;2;1;22;0,5;0,28;9;124;1161;13,8;2,59
-Medicine;Infectious Diseases;5;61;54;12,2;1,12;5;27;124;5,4;0,72
-Medicine;Microbiology (medical);11;127;118;11,5;1,49;9;101;110;11,2;2,01
-Medicine;Neurology (clinical);8;16;62;2;0,76;5;9;34;1,8;0,63
-Medicine;Oncology;31;299;275;9,6;1,72;20;198;1257;9,9;1,85
-Medicine;Ophthalmology;4;19;20;4,8;1,1;3;17;13;5,7;1,13
-Medicine;Orthopedics and Sports Medicine;3;29;22;9,7;1,45;3;38;31;12,7;1,91
-Medicine;Otorhinolaryngology;2;19;24;9,5;4,12;#N/A;#N/A;#N/A;#N/A;#N/A
+Medicine;Health Informatics;32;306;146;9,6;1,45;22;251;103;11,4;1,23
+Medicine;Hematology;5;24;41;4,8;1,32;5;28;72;5,6;1,11
+Medicine;Histology;5;93;35;18,6;2,32;#N/A;#N/A;#N/A;#N/A;#N/A
+Medicine;Immunology and Allergy;3;31;27;10,3;0,83;13;126;111;9,7;0,97
+Medicine;Internal Medicine;2;2;22;1;0,56;8;111;92;13,9;1,5
+Medicine;Infectious Diseases;5;61;54;12,2;1,1;4;24;59;6;0,82
+Medicine;Microbiology (medical);11;127;118;11,5;1,46;9;103;110;11,4;2,02
+Medicine;Neurology (clinical);8;16;62;2;0,74;5;9;34;1,8;0,61
+Medicine;Oncology;31;301;275;9,7;1,69;19;186;184;9,8;1,36
+Medicine;Ophthalmology;4;19;20;4,8;1,09;3;17;13;5,7;1,12
+Medicine;Orthopedics and Sports Medicine;3;30;22;10;1,45;3;40;31;13,3;1,99
+Medicine;Otorhinolaryngology;2;19;24;9,5;4,04;#N/A;#N/A;#N/A;#N/A;#N/A
 Medicine;Pathology and Forensic Medicine;1;9;4;9;1,25;#N/A;#N/A;#N/A;#N/A;#N/A
-Medicine;Pediatrics, Perinatology and Child Health;4;10;18;2,5;1,14;2;10;11;5;1,29
-Medicine;Pharmacology (medical);4;68;45;17;1,61;4;21;94;5,3;0,6
-Medicine;Physiology (medical);4;21;37;5,3;0,54;5;28;49;5,6;0,6
+Medicine;Pediatrics, Perinatology and Child Health;4;10;18;2,5;1,11;2;11;11;5,5;1,4
+Medicine;Pharmacology (medical);4;69;45;17,3;1,58;3;19;38;6,3;0,73
+Medicine;Physiology (medical);4;21;37;5,3;0,53;5;28;49;5,6;0,59
 Medicine;Psychiatry and Mental Health;2;2;5;1;0,94;1;0;2;0;0
-Medicine;Public Health, Environmental and Occupational Health;15;104;135;6,9;0,75;7;40;1122;5,7;2,27
-Medicine;Pulmonary and Respiratory Medicine;1;5;13;5;0,62;2;9;7;4,5;0,94
-Medicine;Radiology, Nuclear Medicine and Imaging;61;339;366;5,6;1,44;25;181;197;7,2;1,29
-Medicine;Rehabilitation;6;24;28;4;0,56;4;20;20;5;0,57
-Medicine;Rheumatology;1;5;8;5;0,94;4;24;14;6;1,19
-Medicine;Surgery;10;62;88;6,2;1,6;12;61;81;5,1;0,78
-Medicine;Urology;1;12;16;12;15,82;3;5;4;1,7;0,79
-Multidisciplinary;-;163;1248;2572;7,7;1,33;114;1029;3528;9;1,58
-Multidisciplinary;Multidisciplinary;163;1248;2572;7,7;1,33;114;1029;3528;9;1,58
-Social Sciences;-;132;1222;654;9,3;1,65;70;276;320;3,9;1,19
-Social Sciences;General Social Sciences;5;1;13;0,2;0,33;6;3;17;0,5;0,6
-Social Sciences;Social Sciences (miscellaneous);5;44;22;8,8;4,27;4;0;10;0;0
-Social Sciences;Archeology;7;25;41;3,6;1,7;5;17;38;3,4;1,65
-Social Sciences;Education;17;60;110;3,5;0,65;13;19;44;1,5;0,33
-Social Sciences;Geography, Planning and Development;35;177;254;5,1;0,68;15;75;138;5;1,32
-Social Sciences;Health (social science);10;58;56;5,8;1,16;2;10;11;5;1,6
-Social Sciences;Human Factors and Ergonomics;7;33;22;4,7;0,47;2;10;8;5;0,65
-Social Sciences;Law;1;3;5;3;2,51;2;13;3;6,5;2,34
-Social Sciences;Library and Information Sciences;10;43;92;4,3;0,63;6;15;19;2,5;0,38
-Social Sciences;Linguistics and Language;21;357;49;17;3,45;20;118;44;5,9;1,75
-Social Sciences;Safety Research;1;3;3;3;0,29;#N/A;#N/A;#N/A;#N/A;#N/A
-Social Sciences;Sociology and Political Science;5;4;13;0,8;0,31;5;0;10;0;0
-Social Sciences;Transportation;18;478;70;26,6;3,24;1;0;4;0;0
-Social Sciences;Anthropology;1;7;7;7;3,34;#N/A;#N/A;#N/A;#N/A;#N/A
-Social Sciences;Communication;7;15;23;2,1;0,59;1;4;7;4;1,01
+Medicine;Public Health, Environmental and Occupational Health;15;104;135;6,9;0,74;6;27;49;4,5;0,79
+Medicine;Pulmonary and Respiratory Medicine;1;5;13;5;0,61;2;9;7;4,5;0,92
+Medicine;Radiology, Nuclear Medicine and Imaging;61;340;366;5,6;1,51;25;182;197;7,3;1,28
+Medicine;Rehabilitation;6;26;28;4,3;0,63;4;20;20;5;0,56
+Medicine;Rheumatology;1;5;8;5;0,91;4;24;14;6;1,17
+Medicine;Surgery;10;63;88;6,3;1,58;12;62;81;5,2;0,78
+Medicine;Urology;1;12;16;12;15,23;3;5;4;1,7;0,76
+Social Sciences;-;131;1232;577;9,4;1,69;69;275;240;4;1,2
+Social Sciences;General Social Sciences;5;1;13;0,2;0,33;6;3;17;0,5;0,59
+Social Sciences;Social Sciences (miscellaneous);5;45;22;9;4,38;4;0;10;0;0
+Social Sciences;Archeology;7;25;41;3,6;1,67;5;17;38;3,4;1,62
+Social Sciences;Education;17;62;110;3,6;1,04;13;19;44;1,5;0,33
+Social Sciences;Geography, Planning and Development;34;173;177;5,1;0,65;14;69;58;4,9;1,29
+Social Sciences;Health (social science);10;59;56;5,9;1,15;2;10;11;5;1,56
+Social Sciences;Human Factors and Ergonomics;7;34;22;4,9;0,5;2;10;8;5;0,63
+Social Sciences;Law;1;3;5;3;2,42;2;15;3;7,5;3,02
+Social Sciences;Library and Information Sciences;10;44;92;4,4;0,75;6;15;19;2,5;0,37
+Social Sciences;Linguistics and Language;21;359;49;17,1;3,42;20;120;44;6;1,75
+Social Sciences;Safety Research;1;3;3;3;0,28;#N/A;#N/A;#N/A;#N/A;#N/A
+Social Sciences;Sociology and Political Science;5;4;13;0,8;0,3;5;0;10;0;0
+Social Sciences;Transportation;18;485;70;26,9;3,22;1;0;4;0;0
+Social Sciences;Anthropology;1;7;7;7;3,3;#N/A;#N/A;#N/A;#N/A;#N/A
+Social Sciences;Communication;7;15;23;2,1;0,58;1;4;7;4;0,99
 Social Sciences;Cultural Studies;3;2;4;0,7;0,36;1;0;1;0;0
-Social Sciences;Urban Studies;5;10;20;2;0,53;3;3;13;1;0,15
-Business, Management and Accounting;-;102;2244;373;22;5,42;56;271;152;4,8;0,97
-Business, Management and Accounting;General Business,Management and Accounting;17;187;40;11;1,52;11;74;27;6,7;3,25
-Business, Management and Accounting;Business, Management and Accounting (miscellaneous);3;11;7;3,7;0,53;4;1;5;0,3;0,31
-Business, Management and Accounting;Business and International Management;10;322;36;32,2;2,2;11;33;23;3;0,73
-Business, Management and Accounting;Management Information Systems;5;19;25;3,8;0,47;4;1;12;0,3;0,04
-Business, Management and Accounting;Management of Technology and Innovation;17;205;63;12,1;1,3;17;52;57;3,1;0,28
-Business, Management and Accounting;Marketing;2;8;8;4;0,83;10;44;9;4,4;0,35
-Business, Management and Accounting;Strategy and Management;59;1656;262;28,1;8,28;17;107;73;6,3;0,63
-Business, Management and Accounting;Industrial Relations;3;12;10;4;0,56;3;12;10;4;0,56
-Arts and Humanities;-;63;646;212;10,3;1,87;50;190;148;3,8;1,49
-Arts and Humanities;Arts and Humanities (miscellaneous);10;301;50;30,1;2,49;6;33;22;5,5;1,19
+Social Sciences;Urban Studies;5;10;20;2;0,52;3;3;13;1;0,15
+Business, Management and Accounting;-;101;2276;283;22,5;5,51;56;278;152;5;0,99
+Business, Management and Accounting;General Business,Management and Accounting;17;188;40;11,1;1,5;11;76;27;6,9;3,31
+Business, Management and Accounting;Business, Management and Accounting (miscellaneous);3;11;7;3,7;0,52;4;1;5;0,3;0,3
+Business, Management and Accounting;Business and International Management;10;325;36;32,5;2,2;11;35;23;3,2;0,85
+Business, Management and Accounting;Management Information Systems;5;19;25;3,8;0,46;4;1;12;0,3;0,04
+Business, Management and Accounting;Management of Technology and Innovation;17;206;63;12,1;1,29;17;53;57;3,1;0,28
+Business, Management and Accounting;Marketing;2;8;8;4;0,81;10;44;9;4,4;0,35
+Business, Management and Accounting;Strategy and Management;58;1683;172;29;8,49;17;111;73;6,5;0,65
+Business, Management and Accounting;Industrial Relations;3;12;10;4;0,54;3;12;10;4;0,54
+Multidisciplinary;-;100;1042;746;10,4;1,19;62;545;536;8,8;1,12
+Multidisciplinary;Multidisciplinary;100;1042;746;10,4;1,19;62;545;536;8,8;1,12
+Arts and Humanities;-;63;652;212;10,3;1,86;50;194;148;3,9;1,5
+Arts and Humanities;Arts and Humanities (miscellaneous);10;305;50;30,5;2,51;6;35;22;5,8;1,41
 Arts and Humanities;History;2;0;4;0;0;2;0;2;0;0
-Arts and Humanities;Language and Linguistics;29;293;70;10,1;2,32;23;123;51;5,3;1,62
-Arts and Humanities;Archeology (arts and humanities);15;34;82;2,3;1,23;8;23;54;2,9;1,52
-Arts and Humanities;Conservation;5;3;27;0,6;0,57;1;1;5;1;0,61
+Arts and Humanities;Language and Linguistics;29;295;70;10,2;2,3;23;125;51;5,4;1,61
+Arts and Humanities;Archeology (arts and humanities);15;34;82;2,3;1,21;8;23;54;2,9;1,49
+Arts and Humanities;Conservation;5;3;27;0,6;0,55;1;1;5;1;0,6
 Arts and Humanities;History and Philosophy of Science;1;0;1;0;0;9;0;20;0;0
 Arts and Humanities;Literature and Literary Theory;1;0;2;0;0;1;0;1;0;0
-Arts and Humanities;Music;6;14;16;2,3;1,43;#N/A;#N/A;#N/A;#N/A;#N/A
+Arts and Humanities;Music;6;14;16;2,3;1,39;#N/A;#N/A;#N/A;#N/A;#N/A
 Arts and Humanities;Religious Studies;3;2;4;0,7;0,36;#N/A;#N/A;#N/A;#N/A;#N/A
-Arts and Humanities;Visual Arts and Performing Arts;1;5;4;5;1,41;#N/A;#N/A;#N/A;#N/A;#N/A
-Immunology and Microbiology;-;58;553;436;9,5;1,32;53;490;570;9,2;1,31
-Immunology and Microbiology;General Immunology and Microbiology;6;56;72;9,3;1,24;5;52;79;10,4;1,22
-Immunology and Microbiology;Immunology and Microbiology (miscellaneous);3;5;15;1,7;2,01;2;4;19;2;2,97
-Immunology and Microbiology;Applied Microbiology and Biotechnology;13;183;112;14,1;1,5;12;151;127;12,6;1,34
-Immunology and Microbiology;Immunology;7;93;99;13,3;2,08;14;181;222;12,9;1,62
-Immunology and Microbiology;Microbiology;35;323;290;9,2;1,3;22;211;212;9,6;1,57
-Immunology and Microbiology;Virology;6;31;60;5,2;0,77;6;17;119;2,8;0,39
-Pharmacology, Toxicology and Pharmaceutics;-;55;720;390;13,1;0,97;62;681;469;11;1,03
-Pharmacology, Toxicology and Pharmaceutics;General Pharmacology, Toxicology and Pharmaceutics;1;30;5;30;1,17;2;12;17;6;0,67
-Pharmacology, Toxicology and Pharmaceutics;Pharmacology, Toxicology and Pharmaceutics (miscellaneous);3;70;36;23,3;0,84;6;118;51;19,7;1,58
-Pharmacology, Toxicology and Pharmaceutics;Drug Discovery;29;348;194;12;0,92;34;412;240;12,1;1,11
-Pharmacology, Toxicology and Pharmaceutics;Pharmaceutical Science;29;473;201;16,3;1,05;33;421;251;12,8;1,14
-Pharmacology, Toxicology and Pharmaceutics;Pharmacology;20;170;163;8,5;0,95;21;188;201;9;0,99
-Pharmacology, Toxicology and Pharmaceutics;Toxicology;8;76;66;9,5;0,83;7;72;54;10,3;0,81
-Health Professions;-;32;410;205;12,8;1,67;14;246;64;17,6;1,52
-Health Professions;Health Professions (miscellaneous);10;58;56;5,8;1,16;2;13;15;6,5;1,83
-Health Professions;Health Information Management;7;128;34;18,3;1,85;8;218;42;27,3;1,98
-Health Professions;Physical Therapy, Sports Therapy and Rehabilitation;4;9;10;2,3;0,27;#N/A;#N/A;#N/A;#N/A;#N/A
-Health Professions;Radiological and Ultrasound Technology;11;215;109;19,5;2,54;4;15;11;3,8;0,45
-Economics, Econometrics and Finance;-;30;260;97;8,7;1,78;20;106;53;5,3;2,08
-Economics, Econometrics and Finance;General Economics,Econometrics and Finance;8;12;26;1,5;1,67;7;12;20;1,7;1,73
-Economics, Econometrics and Finance;Economics, Econometrics and Finance (miscellaneous);5;24;20;4,8;3,32;1;5;4;5;0,47
-Economics, Econometrics and Finance;Economics and Econometrics;16;212;48;13,3;1,34;12;89;31;7,4;2,42
-Economics, Econometrics and Finance;Finance;1;12;4;12;1,81;#N/A;#N/A;#N/A;#N/A;#N/A
-Neuroscience;-;27;269;188;10;1,45;14;129;124;9,2;0,92
-Neuroscience;General Neuroscience;7;108;90;15,4;1,26;6;102;87;17;1,22
+Arts and Humanities;Visual Arts and Performing Arts;1;5;4;5;1,4;#N/A;#N/A;#N/A;#N/A;#N/A
+Immunology and Microbiology;-;58;560;436;9,7;1,31;51;494;459;9,7;1,35
+Immunology and Microbiology;General Immunology and Microbiology;6;56;72;9,3;1,23;5;52;79;10,4;1,21
+Immunology and Microbiology;Immunology and Microbiology (miscellaneous);3;5;15;1,7;1,96;2;4;19;2;2,89
+Immunology and Microbiology;Applied Microbiology and Biotechnology;13;183;112;14,1;1,47;12;151;127;12,6;1,31
+Immunology and Microbiology;Immunology;7;94;99;13,4;2,05;13;179;157;13,8;1,71
+Immunology and Microbiology;Microbiology;35;329;290;9,4;1,29;22;219;212;10;1,59
+Immunology and Microbiology;Virology;6;31;60;5,2;0,76;5;15;63;3;0,42
+Pharmacology, Toxicology and Pharmaceutics;-;55;735;390;13,4;0,97;62;689;469;11,1;1,03
+Pharmacology, Toxicology and Pharmaceutics;General Pharmacology, Toxicology and Pharmaceutics;1;30;5;30;1,12;2;12;17;6;0,66
+Pharmacology, Toxicology and Pharmaceutics;Pharmacology, Toxicology and Pharmaceutics (miscellaneous);3;72;36;24;0,86;6;120;51;20;1,58
+Pharmacology, Toxicology and Pharmaceutics;Drug Discovery;29;356;194;12,3;0,93;34;417;240;12,3;1,1
+Pharmacology, Toxicology and Pharmaceutics;Pharmaceutical Science;29;485;201;16,7;1,06;33;426;251;12,9;1,13
+Pharmacology, Toxicology and Pharmaceutics;Pharmacology;20;173;163;8,7;0,95;21;191;201;9,1;1
+Pharmacology, Toxicology and Pharmaceutics;Toxicology;8;77;66;9,6;0,81;7;73;54;10,4;0,8
+Health Professions;-;31;247;155;8;1,17;14;247;64;17,6;1,51
+Health Professions;Health Professions (miscellaneous);10;59;56;5,9;1,15;2;13;15;6,5;1,79
+Health Professions;Health Information Management;7;128;34;18,3;1,82;8;219;42;27,4;1,96
+Health Professions;Physical Therapy, Sports Therapy and Rehabilitation;4;10;10;2,5;0,34;#N/A;#N/A;#N/A;#N/A;#N/A
+Health Professions;Radiological and Ultrasound Technology;10;50;59;5;1,05;4;15;11;3,8;0,45
+Economics, Econometrics and Finance;-;30;263;97;8,8;1,83;20;108;53;5,4;2,11
+Economics, Econometrics and Finance;General Economics,Econometrics and Finance;8;13;26;1,6;1,81;7;12;20;1,7;1,7
+Economics, Econometrics and Finance;Economics, Econometrics and Finance (miscellaneous);5;25;20;5;3,45;1;5;4;5;0,46
+Economics, Econometrics and Finance;Economics and Econometrics;16;213;48;13,3;1,33;12;91;31;7,6;2,49
+Economics, Econometrics and Finance;Finance;1;12;4;12;1,79;#N/A;#N/A;#N/A;#N/A;#N/A
+Neuroscience;-;27;272;188;10,1;1,5;14;132;124;9,4;1,07
+Neuroscience;General Neuroscience;7;109;90;15,6;1,25;6;103;87;17,2;1,21
 Neuroscience;Neuroscience (miscellaneous);1;0;4;0;0;1;0;4;0;0
-Neuroscience;Behavioral Neuroscience;2;2;14;1;0,29;1;1;3;1;0,27
-Neuroscience;Cellular and Molecular Neuroscience;7;47;45;6,7;1,3;3;9;17;3;0,61
-Neuroscience;Cognitive Neuroscience;3;90;12;30;4,33;#N/A;#N/A;#N/A;#N/A;#N/A
-Neuroscience;Developmental Neuroscience;1;1;11;1;0,31;#N/A;#N/A;#N/A;#N/A;#N/A
-Neuroscience;Neurology;5;5;29;1;0,83;1;0;7;0;0
-Neuroscience;Sensory Systems;3;17;13;5,7;1,13;3;17;13;5,7;1,13
-Psychology;-;21;207;139;9,9;1,34;7;17;32;2,4;0,55
-Psychology;General Psychology;5;25;28;5;0,66;3;12;13;4;0,5
-Psychology;Psychology (miscellaneous);2;4;9;2;0,66;1;3;3;3;0,54
-Psychology;Applied Psychology;6;58;28;9,7;1,07;2;5;11;2,5;1,16
-Psychology;Developmental and Educational Psychology;3;7;21;2,3;0,66;2;3;8;1,5;0,27
-Psychology;Experimental and Cognitive Psychology;3;81;13;27;3,89;1;3;3;3;0,54
-Psychology;Neuropsychology and Physiological Psychology;1;38;57;38;5,12;#N/A;#N/A;#N/A;#N/A;#N/A
-Psychology;Social Psychology;5;18;24;3,6;0,45;3;5;15;1,7;0,78
-Nursing;-;12;71;66;5,9;0,65;6;5;41;0,8;0,59
+Neuroscience;Behavioral Neuroscience;2;2;14;1;0,28;1;1;3;1;0,27
+Neuroscience;Cellular and Molecular Neuroscience;7;49;45;7;1,59;3;11;17;3,7;1,36
+Neuroscience;Cognitive Neuroscience;3;90;12;30;4,27;#N/A;#N/A;#N/A;#N/A;#N/A
+Neuroscience;Developmental Neuroscience;1;1;11;1;0,3;#N/A;#N/A;#N/A;#N/A;#N/A
+Neuroscience;Neurology;5;5;29;1;0,8;1;0;7;0;0
+Neuroscience;Sensory Systems;3;17;13;5,7;1,12;3;17;13;5,7;1,12
+Psychology;-;20;169;84;8,5;1,13;7;17;32;2,4;0,53
+Psychology;General Psychology;5;25;28;5;0,65;3;12;13;4;0,49
+Psychology;Psychology (miscellaneous);2;4;9;2;0,64;1;3;3;3;0,53
+Psychology;Applied Psychology;6;58;28;9,7;1,06;2;5;11;2,5;1,13
+Psychology;Developmental and Educational Psychology;3;7;21;2,3;0,64;2;3;8;1,5;0,26
+Psychology;Experimental and Cognitive Psychology;3;81;13;27;3,83;1;3;3;3;0,53
+Psychology;Social Psychology;5;18;24;3,6;0,45;3;5;15;1,7;0,75
+Nursing;-;12;73;66;6,1;0,65;6;5;41;0,8;0,57
 Nursing;General Nursing;1;0;2;0;0;#N/A;#N/A;#N/A;#N/A;#N/A
 Nursing;Gerontology;1;0;10;0;0;1;0;10;0;0
-Nursing;Nutrition and Dietetics;10;71;54;7,1;0,78;3;3;17;1;0,3
-Dentistry;-;9;43;57;4,8;1,58;3;3;18;1;0,36
-Dentistry;General Dentistry;7;24;33;3,4;0,85;3;3;18;1;0,36
-Dentistry;Oral Surgery;2;19;24;9,5;4,12;#N/A;#N/A;#N/A;#N/A;#N/A
-Psychology;Neuropsychology and Physiological Psychology;1;37;57;37,0;5,05;#N/A;#N/A;#N/A;#N/A;#N/A
-Psychology;Social Psychology;8;64;36;8,0;0,54;3;5;15;1,7;0,78
-Nursing;-;15;109;88;7,3;0,67;6;5;41;0,8;0,59
-Nursing;General Nursing;1;0;2;0,0;0,00;#N/A;#N/A;#N/A;#N/A;#N/A
-Nursing;Gerontology;1;0;10;0,0;0,00;1;0;10;0;0
-Nursing;Nutrition and Dietetics;13;109;76;8,4;0,78;3;3;17;1;0,3
-Dentistry;-;13;90;74;6,9;1,44;3;3;18;1;0,36
-Dentistry;General Dentistry;8;35;37;4,4;0,84;3;3;18;1;0,36
-Dentistry;Dentistry (miscellaneous);2;11;9;5,5;0,47;#N/A;#N/A;#N/A;#N/A;#N/A
-Dentistry;Oral Surgery;3;44;29;14,7;3,66;#N/A;#N/A;#N/A;#N/A;#N/A
+Nursing;Nutrition and Dietetics;10;73;54;7,3;0,78;3;3;17;1;0,29
+Dentistry;-;9;44;57;4,9;1,59;3;3;18;1;0,35
+Dentistry;General Dentistry;7;25;33;3,6;0,9;3;3;18;1;0,35
+Dentistry;Oral Surgery;2;19;24;9,5;4,04;#N/A;#N/A;#N/A;#N/A;#N/A
+Biochemistry, Genetics and Molecular Biology;Aging;#N/A;#N/A;#N/A;#N/A;#N/A;1;6;16;6;0,43
+Medicine;Emergency Medicine;#N/A;#N/A;#N/A;#N/A;#N/A;1;13;17;13;3,19
+Medicine;Health Policy;#N/A;#N/A;#N/A;#N/A;#N/A;2;3;13;1,5;1,46
+Medicine;Hepatology;#N/A;#N/A;#N/A;#N/A;#N/A;1;65;3;65;2,63
+Medicine;Obstetrics and Gynecology;#N/A;#N/A;#N/A;#N/A;#N/A;2;3;26;1,5;1,37
+Medicine;Transplantation;#N/A;#N/A;#N/A;#N/A;#N/A;1;1;5;1;0,14
+Social Sciences;Development;#N/A;#N/A;#N/A;#N/A;#N/A;2;21;3;10,5;2,02
+Social Sciences;Political Science and International Relations;#N/A;#N/A;#N/A;#N/A;#N/A;1;0;1;0;0
+Social Sciences;Public Administration;#N/A;#N/A;#N/A;#N/A;#N/A;1;0;2;0;0
+Business, Management and Accounting;Accounting;#N/A;#N/A;#N/A;#N/A;#N/A;1;0;1;0;0
+Business, Management and Accounting;Organizational Behavior and Human Resource Management;#N/A;#N/A;#N/A;#N/A;#N/A;4;1;8;0,3;0,03
+Business, Management and Accounting;Tourism, Leisure and Hospitality Management;#N/A;#N/A;#N/A;#N/A;#N/A;5;10;6;2;0,18
+Arts and Humanities;General Arts and Humanities;#N/A;#N/A;#N/A;#N/A;#N/A;1;0;1;0;0
+Arts and Humanities;Philosophy;#N/A;#N/A;#N/A;#N/A;#N/A;1;11;3;11;17,51
+Nursing;Advanced and Specialized Nursing;#N/A;#N/A;#N/A;#N/A;#N/A;1;0;5;0;0
+Nursing;Maternity and Midwifery;#N/A;#N/A;#N/A;#N/A;#N/A;1;2;9;2;2,53
+Nursing;Medical and Surgical Nursing;#N/A;#N/A;#N/A;#N/A;#N/A;1;0;5;0;0
+Nursing;Pediatrics;#N/A;#N/A;#N/A;#N/A;#N/A;1;2;9;2;2,53
+Veterinary;-;#N/A;#N/A;#N/A;#N/A;#N/A;1;3;8;3;1,52
+Veterinary;General Veterinary;#N/A;#N/A;#N/A;#N/A;#N/A;1;3;8;3;1,52
