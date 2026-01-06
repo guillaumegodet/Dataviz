@@ -46,7 +46,7 @@ const PublicationStackedChart = () => {
 
   const option = {
     title: {
-      text: 'Répartition des Publications (Accès Ouvert vs Fermé)',
+      text: 'Nombre de publications par année et type d'accès',
       left: 'center',
       top: 10
     },
