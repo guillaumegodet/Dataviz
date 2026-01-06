@@ -1,103 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dataviz Accès Ouvert Empilé</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <title>Dashboard Accès Ouvert</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 900px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .controls { display: flex; justify-content: center; align-items: center; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee; }
+        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer; }
+        #chart-container { width: 100%; height: 500px; }
+    </style>
 </head>
-<body style="background-color: #f4f4f9; padding: 20px; font-family: sans-serif;">
-    <div id="chart-container" style="width:100%; height:600px; background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+<body>
 
-    <script type="text/javascript">
-        var chartDom = document.getElementById('chart-container');
-        var myChart = echarts.init(chartDom);
+<div class="card">
+    <div class="header">
+        <h2>Évolution des Publications en Accès Ouvert</h2>
+    </div>
 
-        // Couleurs thématiques pour la répartition
-        const colorMap = {
-            "Gold": "#fac858",
-            "Green": "#91cc75",
-            "Diamond": "#73c0de",
-            "Hybrid": "#ee6666",
-            "Bronze": "#fc8452",
-            "Other": "#7b7b7b",
-            "default": "#9a60b4"
-        };
+    <div class="controls">
+        <label>De : 
+            <select id="startYear"></select>
+        </label>
+        <label>À : 
+            <select id="endYear"></select>
+        </label>
+    </div>
 
-        const years = ["2022", "2023", "2024", "2025"];
-        const totalPubs = [500, 620, 750, 400];
-        const oaPubs = [300, 450, 580, 310];
+    <div id="chart-container"></div>
+</div>
+
+<script>
+    // 1. Données brutes
+    const rawData = [
+        { year: 2020, total: 450, oa: 210, details: { "Green": 40, "Gold": 50, "Diamond": 30, "Hybrid": 30, "Bronze": 20, "Other": 10, "Gold,Green": 30 } },
+        { year: 2021, total: 480, oa: 250, details: { "Green": 45, "Gold": 60, "Diamond": 35, "Hybrid": 40, "Bronze": 20, "Other": 15, "Gold,Green": 35 } },
+        { year: 2022, total: 500, oa: 300, details: { "Green": 50, "Diamond": 40, "Gold": 60, "Hybrid": 30, "Bronze": 20, "Other": 10, "Diamond,Green": 20, "Gold,Green": 30, "Hybrid,Green": 20, "Bronze,Green": 10, "Other,Green": 10 } },
+        { year: 2023, total: 620, oa: 450, details: { "Green": 60, "Diamond": 55, "Gold": 80, "Hybrid": 40, "Bronze": 25, "Other": 15, "Diamond,Green": 45, "Gold,Green": 60, "Hybrid,Green": 35, "Bronze,Green": 20, "Other,Green": 15 } },
+        { year: 2024, total: 750, oa: 580, details: { "Green": 70, "Diamond": 90, "Gold": 110, "Hybrid": 50, "Bronze": 30, "Other": 20, "Diamond,Green": 60, "Gold,Green": 70, "Hybrid,Green": 40, "Bronze,Green": 25, "Other,Green": 15 } },
+        { year: 2025, total: 400, oa: 310, details: { "Green": 40, "Diamond": 50, "Gold": 60, "Hybrid": 30, "Bronze": 15, "Other": 10, "Diamond,Green": 30, "Gold,Green": 40, "Hybrid,Green": 20, "Bronze,Green": 15, "Other,Green": 10 } }
+    ];
+
+    const colorMap = { "Gold": "#fac858", "Green": "#91cc75", "Diamond": "#73c0de", "Hybrid": "#ee6666", "Bronze": "#fc8452", "Other": "#7b7b7b", "Mixed": "#9a60b4" };
+
+    // 2. Initialisation du graphique
+    const chartDom = document.getElementById('chart-container');
+    const myChart = echarts.init(chartDom);
+
+    function updateChart() {
+        const start = parseInt(document.getElementById('startYear').value);
+        const end = parseInt(document.getElementById('endYear').value);
         
-        // Calcul du reste (Accès fermé) pour l'empilement
-        const closedPubs = totalPubs.map((t, i) => t - oaPubs[i]);
+        const filtered = rawData.filter(d => d.year >= start && d.year <= end);
 
-        const oaDetails = [
-            {"Green": 50, "Diamond": 40, "Gold": 60, "Hybrid": 30, "Bronze": 20, "Other": 10, "Diamond,Green": 20, "Gold,Green": 30, "Hybrid,Green": 20, "Bronze,Green": 10, "Other,Green": 10},
-            {"Green": 60, "Diamond": 55, "Gold": 80, "Hybrid": 40, "Bronze": 25, "Other": 15, "Diamond,Green": 45, "Gold,Green": 60, "Hybrid,Green": 35, "Bronze,Green": 20, "Other,Green": 15},
-            {"Green": 70, "Diamond": 90, "Gold": 110, "Hybrid": 50, "Bronze": 30, "Other": 20, "Diamond,Green": 60, "Gold,Green": 70, "Hybrid,Green": 40, "Bronze,Green": 25, "Other,Green": 15},
-            {"Green": 40, "Diamond": 50, "Gold": 60, "Hybrid": 30, "Bronze": 15, "Other": 10, "Diamond,Green": 30, "Gold,Green": 40, "Hybrid,Green": 20, "Bronze,Green": 15, "Other,Green": 10}
-        ];
-
-        var option = {
-            title: { text: "Nombre de publications par année et type d'accès", left: 'center', top: 20 },
+        const option = {
             tooltip: {
                 trigger: 'axis',
                 axisPointer: { type: 'shadow' },
                 formatter: function (params) {
-                    var idx = params[0].dataIndex;
-                    var yearDetail = oaDetails[idx];
-                    var total = totalPubs[idx];
-                    var oa = oaPubs[idx];
-                    var percent = ((oa / total) * 100).toFixed(1);
-
-                    var html = `<div style="font-weight:bold; margin-bottom:5px;">Année ${params[0].name}</div>`;
-                    html += `<div style="margin-bottom:5px;">Total Publications : <b>${total}</b></div>`;
-                    html += `<div style="color:#91cc75; font-weight:bold;">Accès Ouvert : ${oa} (${percent}%)</div>`;
-                    html += '<div style="margin-top:8px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 11px;">';
+                    const dataIndex = params[0].dataIndex;
+                    const item = filtered[dataIndex];
+                    const percent = ((item.oa / item.total) * 100).toFixed(1);
                     
-                    for (var key in yearDetail) {
-                        // On cherche une couleur dans la map, sinon couleur par défaut
-                        let colorKey = key.split(',')[0]; 
-                        let color = colorMap[colorKey] || colorMap["default"];
-                        
-                        html += `<div style="display:flex; align-items:center;">
-                                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${color}; margin-right:5px;"></span>
-                                    <span>${key}: <b>${yearDetail[key]}</b></span>
-                                 </div>`;
+                    let res = `<div style="min-width:240px; font-size:12px;">
+                        <b style="font-size:14px;">Année ${item.year}</b><br/>
+                        Total : ${item.total}<br/>
+                        <span style="color:#91cc75">OA : ${item.oa} (${percent}%)</span>
+                        <hr style="border:0; border-top:1px solid #eee; margin:8px 0;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">`;
+                    
+                    for (const [key, val] of Object.entries(item.details)) {
+                        const color = colorMap[key.includes(',') ? "Mixed" : key] || "#ccc";
+                        res += `<div style="display:flex; align-items:center;">
+                            <span style="width:8px; height:8px; border-radius:50%; background:${color}; margin-right:5px;"></span>
+                            ${key}: <b>${val}</b>
+                        </div>`;
                     }
-                    html += '</div>';
-                    return `<div style="min-width:250px;">${html}</div>`;
+                    return res + `</div></div>`;
                 }
             },
-            legend: { data: ['Accès Ouvert', 'Accès Fermé'], bottom: 10 },
-            xAxis: { type: 'category', data: years },
-            yAxis: { type: 'value', name: 'Nombre de publications' },
+            toolbox: { feature: { saveAsImage: { title: 'Télécharger PNG' } }, right: 10 },
+            legend: { data: ['Accès Ouvert', 'Accès Fermé'], bottom: 0 },
+            xAxis: { type: 'category', data: filtered.map(d => d.year) },
+            yAxis: { type: 'value' },
             series: [
                 {
                     name: 'Accès Ouvert',
                     type: 'bar',
-                    stack: 'total', // Même nom de stack pour empiler
-                    data: oaPubs,
+                    stack: 'total',
                     itemStyle: { color: '#91cc75' },
-                    label: {
-                        show: true,
-                        position: 'inside',
-                        formatter: function(p) {
-                            return Math.round((p.value / totalPubs[p.dataIndex]) * 100) + '%';
-                        }
+                    data: filtered.map(d => d.oa),
+                    label: { 
+                        show: true, 
+                        position: 'inside', 
+                        formatter: (p) => Math.round((p.value / filtered[p.dataIndex].total)*100)+'%' 
                     }
                 },
                 {
                     name: 'Accès Fermé',
                     type: 'bar',
                     stack: 'total',
-                    data: closedPubs,
-                    itemStyle: { color: '#5470c6' }
+                    itemStyle: { color: '#5470c6' },
+                    data: filtered.map(d => d.total - d.oa)
                 }
             ]
         };
+        myChart.setOption(option, true);
+    }
 
-        myChart.setOption(option);
-        window.addEventListener('resize', () => myChart.resize());
-    </script>
+    // 3. Gestion des sélecteurs
+    const startSelect = document.getElementById('startYear');
+    const endSelect = document.getElementById('endYear');
+    const years = rawData.map(d => d.year);
+
+    years.forEach(y => {
+        startSelect.add(new Option(y, y));
+        endSelect.add(new Option(y, y));
+    });
+
+    startSelect.value = 2022;
+    endSelect.value = 2025;
+
+    [startSelect, endSelect].forEach(s => s.addEventListener('change', updateChart));
+    
+    // Rendu initial
+    updateChart();
+
+    // Redimensionnement auto
+    window.addEventListener('resize', () => myChart.resize());
+</script>
+
 </body>
 </html>
