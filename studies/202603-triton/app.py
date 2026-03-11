@@ -1,8 +1,18 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import pycountry
 
 st.set_page_config(page_title="Dashboard Coopération Nantes", layout="wide")
+
+def get_country_name(code):
+    try:
+        if code == 'UK':
+            return 'United Kingdom'
+        c = pycountry.countries.get(alpha_2=code)
+        return c.name if c else code
+    except:
+        return code
 
 @st.cache_data
 def load_data():
@@ -36,7 +46,11 @@ st.sidebar.header("🌍 Filtre Géographique")
 all_countries_series = working_df['country'].str.split('|').explode().str.strip()
 available_countries = sorted(all_countries_series[all_countries_series != 'FR'].dropna().unique())
 
-selected_country = st.sidebar.selectbox("Choisir un pays partenaire :", ["Tous les pays"] + available_countries)
+selected_country = st.sidebar.selectbox(
+    "Choisir un pays partenaire :", 
+    ["Tous les pays"] + available_countries,
+    format_func=lambda x: get_country_name(x) if x != "Tous les pays" else x
+)
 
 # Filtrage final pour l'affichage
 if selected_country != "Tous les pays":
@@ -47,7 +61,7 @@ else:
     display_df = working_df
 
 # --- AFFICHAGE DES RÉSULTATS ---
-st.title(f"Collaborations : {selected_author if selected_author != 'Tous les auteurs' else 'Nantes'}")
+st.title(f"Collaborations : {selected_author if selected_author != 'Tous les auteurs' else 'LS2N'} (2020-2025)")
 
 col1, col2 = st.columns([1, 2])
 
@@ -55,10 +69,12 @@ with col1:
     st.write("### 🚩 Pays partenaires")
     # On explose pour compter chaque pays individuellement
     exploded_countries = display_df['country'].str.split('|').explode().str.strip()
-    stats_countries = exploded_countries[exploded_countries != 'FR'].value_counts()
+    stats_countries = exploded_countries[exploded_countries != 'FR'].value_counts().reset_index()
+    stats_countries.columns = ['country_code', 'count']
+    stats_countries['country_name'] = stats_countries['country_code'].apply(get_country_name)
     
     if not stats_countries.empty:
-        fig_pie = px.pie(stats_countries.reset_index(), values='count', names='country', hole=0.4)
+        fig_pie = px.pie(stats_countries, values='count', names='country_name', hole=0.4)
         st.plotly_chart(fig_pie, use_container_width=True)
     else:
         st.info("Aucune collaboration internationale sur ces critères.")
@@ -91,7 +107,7 @@ with col2:
                 f_auths = work_data[work_data['country'].str.contains(r'^(?!FR$)', regex=True, na=False)]
                 for _, r in f_auths.iterrows():
                     # Filtrer pour ne montrer que les pays non-FR de cet auteur
-                    other_countries = [c for c in str(r['country']).split('|') if c != 'FR']
+                    other_countries = [get_country_name(c) for c in str(r['country']).split('|') if c != 'FR']
                     countries_label = ", ".join(other_countries)
                     inst_label = r['institution'].replace('|', ' / ')
                     st.write(f"🌎 {r['author']}  \n*{inst_label}* ({countries_label})")
