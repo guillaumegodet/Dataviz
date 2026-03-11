@@ -69,10 +69,17 @@ def get_cooperations():
             work_id = work['id']
             title = work['display_name']
             year = work['publication_year']
+            # Extraire les thèmes (topics) et domaines (subfields)
+            topics = []
+            subfields = []
+            for t in work.get('topics', []):
+                if t.get('display_name'):
+                    topics.append(t.get('display_name'))
+                if t.get('subfield', {}).get('display_name'):
+                    subfields.append(t.get('subfield').get('display_name'))
             
-            # Extraire les thèmes (topics)
-            topics = [t.get('display_name') for t in work.get('topics', [])]
             topics_str = "|".join(filter(None, topics))
+            subfields_str = "|".join(dict.fromkeys(filter(None, subfields))) # dict.fromkeys pour dédoublonner les domaines
             
             # Analyser les auteurs et affiliations
             for auth in work.get('authorships', []):
@@ -113,6 +120,7 @@ def get_cooperations():
                         "ror": "|".join(dict.fromkeys(filter(None, rors))),
                         "country": "|".join(dict.fromkeys(filter(None, countries))),
                         "topics": topics_str,
+                        "subfields": subfields_str,
                         "is_nantes": any_is_nantes
                     })
 

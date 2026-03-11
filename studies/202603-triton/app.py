@@ -23,9 +23,11 @@ def load_data():
     # On s'assure que les noms sont bien formatés pour la recherche
     df['author'] = df['author'].fillna("Inconnu")
     
-    # Sécurité : si le cache Streamlit est ancien et n'a pas la colonne topics
+    # Sécurité : si le cache Streamlit est ancien et n'a pas les colonnes topics ou subfields
     if 'topics' not in df.columns:
         df['topics'] = ""
+    if 'subfields' not in df.columns:
+        df['subfields'] = ""
         
     return df
 
@@ -68,9 +70,20 @@ if selected_country != "Tous les pays":
     available_insts = sorted(all_insts.dropna().unique())
     selected_inst = st.sidebar.selectbox("Choisir un établissement :", ["Tous les établissements"] + available_insts)
 
+# --- FILTRE DOMAINE (Subfields) ---
+st.sidebar.header("🎓 Domaine de recherche")
+all_subfields_series = working_df['subfields'].str.split('|').explode().str.strip()
+available_subfields = sorted(all_subfields_series.dropna().unique())
+selected_subfield = st.sidebar.selectbox("Choisir un domaine :", ["Tous les domaines"] + available_subfields)
+
 # --- FILTRE THÈME (Topics) ---
 st.sidebar.header("🔬 Thème de recherche")
-all_topics_series = working_df['topics'].str.split('|').explode().str.strip()
+# Filtrer les thèmes disponibles selon le domaine choisi pour plus de pertinence
+temp_df = working_df
+if selected_subfield != "Tous les domaines":
+    temp_df = working_df[working_df['subfields'].str.contains(selected_subfield, na=False, regex=False)]
+
+all_topics_series = temp_df['topics'].str.split('|').explode().str.strip()
 available_topics = sorted(all_topics_series.dropna().unique())
 selected_topic = st.sidebar.selectbox("Choisir un thème :", ["Tous les thèmes"] + available_topics)
 
@@ -84,6 +97,10 @@ if selected_country != "Tous les pays":
 if selected_inst != "Tous les établissements":
     i_dois = filtered_df[filtered_df['institution'].str.contains(selected_inst, na=False, regex=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(i_dois)]
+
+if selected_subfield != "Tous les domaines":
+    s_dois = filtered_df[filtered_df['subfields'].str.contains(selected_subfield, na=False, regex=False)]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(s_dois)]
 
 if selected_topic != "Tous les thèmes":
     t_dois = filtered_df[filtered_df['topics'].str.contains(selected_topic, na=False, regex=False)]['doi'].unique()
@@ -164,12 +181,20 @@ with col2:
                     inst_label = r['institution'].replace('|', ' / ')
                     st.write(f"🌎 {r['author']}  \n*{inst_label}* ({countries_label})")
             
-            # Affichage des thèmes (Topics)
-            if 'topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0]):
-                topics_list = work_data['topics'].iloc[0].split('|')
+            # Affichage des Domaines et Thèmes (Subfields & Topics)
+            if ('subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0])) or \
+               ('topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0])):
                 st.write("---")
-                st.write("🔬 **Thèmes de recherche :**")
-                st.write(", ".join(topics_list))
+                
+                if 'subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0]):
+                    subfields_list = work_data['subfields'].iloc[0].split('|')
+                    st.write("🎓 **Domaines de recherche :**")
+                    st.write(", ".join(subfields_list))
+                
+                if 'topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0]):
+                    topics_list = work_data['topics'].iloc[0].split('|')
+                    st.write("🔬 **Thèmes de recherche :**")
+                    st.write(", ".join(topics_list))
             
             openalex_id = work_data['work_id'].iloc[0]
             st.caption(f"**DOI:** [{doi}]({doi}) | **OpenAlex:** [{openalex_id}](https://openalex.org/works/{openalex_id})")
