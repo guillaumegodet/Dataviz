@@ -201,68 +201,141 @@ with col1:
         st.plotly_chart(fig_top, use_container_width=True)
 
 with col2:
-    dois = display_df['doi'].dropna().unique()
-    total_items = len(dois)
-    ITEMS_PER_PAGE = 20
-    total_pages = (total_items - 1) // ITEMS_PER_PAGE + 1 if total_items > 0 else 0
-
-    st.write(f"### 📄 Publications ({total_items})")
+    view_mode = st.radio(
+        "Mode d'affichage :",
+        options=["Par Publications", "Par Universités partenaires"],
+        horizontal=True
+    )
     
-    if total_pages > 1:
-        # On utilise une colonne pour centrer le sélecteur de page ou le mettre discrètement
-        page_col1, page_col2 = st.columns([1, 1])
-        with page_col1:
-            current_page = st.number_input(f"Page (sur {total_pages})", min_value=1, max_value=total_pages, step=1, value=1)
-        
-        start_idx = (current_page - 1) * ITEMS_PER_PAGE
-        end_idx = start_idx + ITEMS_PER_PAGE
-        dois_to_show = dois[start_idx:end_idx]
-    else:
-        dois_to_show = dois
+    st.write("---")
 
-    for doi in dois_to_show:
-        work_data = display_df[display_df['doi'] == doi]
-        if work_data.empty:
-            continue
-            
-        title = work_data['title'].iloc[0] if not pd.isna(work_data['title'].iloc[0]) else "Sans titre"
-        year = work_data['year'].iloc[0]
+    if view_mode == "Par Publications":
+        dois = display_df['doi'].dropna().unique()
+        total_items = len(dois)
+        ITEMS_PER_PAGE = 20
+        total_pages = (total_items - 1) // ITEMS_PER_PAGE + 1 if total_items > 0 else 0
+    
+        st.write(f"### 📄 Publications ({total_items})")
         
-        with st.expander(f"({year}) {title}"):
-            c1, c2 = st.columns(2)
-            with c1:
-                st.write("**Équipe Nantes :**")
-                n_auths = work_data[work_data['is_nantes'] == True]
-                for _, r in n_auths.iterrows():
-                    style = f"**{r['author']}**" if r['author'] == selected_author else r['author']
-                    # On affiche les institutions proprement même si plusieurs
-                    inst_label = r['institution'].replace('|', ' / ')
-                    st.write(f"👤 {style}  \n*{inst_label}*")
-            with c2:
-                st.write("**Partenaires Internationaux :**")
-                # Un auteur est étranger s'il a au moins un pays qui n'est pas FR
-                f_auths = work_data[work_data['country'].str.contains(r'^(?!FR$)', regex=True, na=False)]
-                for _, r in f_auths.iterrows():
-                    # Filtrer pour ne montrer que les pays non-FR de cet auteur
-                    other_countries = [get_country_name(c) for c in str(r['country']).split('|') if c != 'FR']
-                    countries_label = ", ".join(other_countries)
-                    inst_label = r['institution'].replace('|', ' / ')
-                    st.write(f"🌎 {r['author']}  \n*{inst_label}* ({countries_label})")
+        if total_pages > 1:
+            # On utilise une colonne pour centrer le sélecteur de page ou le mettre discrètement
+            page_col1, page_col2 = st.columns([1, 1])
+            with page_col1:
+                current_page = st.number_input(f"Page (sur {total_pages})", min_value=1, max_value=total_pages, step=1, value=1)
             
-            # Affichage des Domaines et Thèmes (Subfields & Topics)
-            if ('subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0])) or \
-               ('topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0])):
+            start_idx = (current_page - 1) * ITEMS_PER_PAGE
+            end_idx = start_idx + ITEMS_PER_PAGE
+            dois_to_show = dois[start_idx:end_idx]
+        else:
+            dois_to_show = dois
+    
+        for doi in dois_to_show:
+            work_data = display_df[display_df['doi'] == doi]
+            if work_data.empty:
+                continue
+                
+            title = work_data['title'].iloc[0] if not pd.isna(work_data['title'].iloc[0]) else "Sans titre"
+            year = work_data['year'].iloc[0]
+            
+            with st.expander(f"({year}) {title}"):
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.write("**Équipe Nantes :**")
+                    n_auths = work_data[work_data['is_nantes'] == True]
+                    for _, r in n_auths.iterrows():
+                        style = f"**{r['author']}**" if r['author'] == selected_author else r['author']
+                        # On affiche les institutions proprement même si plusieurs
+                        inst_label = r['institution'].replace('|', ' / ')
+                        st.write(f"👤 {style}  \n*{inst_label}*")
+                with c2:
+                    st.write("**Partenaires Internationaux :**")
+                    # Un auteur est étranger s'il a au moins un pays qui n'est pas FR
+                    f_auths = work_data[work_data['country'].str.contains(r'^(?!FR$)', regex=True, na=False)]
+                    for _, r in f_auths.iterrows():
+                        # Filtrer pour ne montrer que les pays non-FR de cet auteur
+                        other_countries = [get_country_name(c) for c in str(r['country']).split('|') if c != 'FR']
+                        countries_label = ", ".join(other_countries)
+                        inst_label = r['institution'].replace('|', ' / ')
+                        st.write(f"🌎 {r['author']}  \n*{inst_label}* ({countries_label})")
+                
+                # Affichage des Domaines et Thèmes (Subfields & Topics)
+                if ('subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0])) or \
+                   ('topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0])):
+                    st.write("---")
+                    
+                    if 'subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0]):
+                        subfields_list = work_data['subfields'].iloc[0].split('|')
+                        st.write("🎓 **Domaines de recherche :**")
+                        st.write(", ".join(subfields_list))
+                    
+                    if 'topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0]):
+                        topics_list = work_data['topics'].iloc[0].split('|')
+                        st.write("🔬 **Sujets de recherche :**")
+                        st.write(", ".join(topics_list))
+                
+                openalex_id = work_data['work_id'].iloc[0]
+                st.caption(f"**DOI:** [{doi}]({doi}) | **OpenAlex:** [{openalex_id}](https://openalex.org/works/{openalex_id})")
+
+    else:
+        # Mode : Universités partenaires
+        partner_inst_df = display_df[display_df['is_nantes'] == False][['doi', 'institution']].copy()
+        partner_inst_df['institution'] = partner_inst_df['institution'].fillna("")
+        partner_inst_df = partner_inst_df.assign(institution=partner_inst_df['institution'].str.split('|')).explode('institution')
+        partner_inst_df['institution'] = partner_inst_df['institution'].str.strip()
+        partner_inst_df = partner_inst_df[partner_inst_df['institution'] != ""]
+        
+        inst_stats = partner_inst_df.groupby('institution')['doi'].nunique().reset_index()
+        inst_stats.columns = ['Institution', 'Publications']
+        inst_stats = inst_stats.sort_values('Publications', ascending=False)
+        
+        total_insts = len(inst_stats)
+        st.write(f"### 🏫 Universités partenaires ({total_insts})")
+        
+        ITEMS_PER_PAGE = 20
+        total_pages = (total_insts - 1) // ITEMS_PER_PAGE + 1 if total_insts > 0 else 0
+        
+        if total_pages > 1:
+            page_col1, page_col2 = st.columns([1, 1])
+            with page_col1:
+                current_page = st.number_input(f"Page (sur {total_pages})", min_value=1, max_value=total_pages, step=1, value=1, key='inst_page')
+            
+            start_idx = (current_page - 1) * ITEMS_PER_PAGE
+            end_idx = start_idx + ITEMS_PER_PAGE
+            insts_to_show = inst_stats.iloc[start_idx:end_idx]
+        else:
+            insts_to_show = inst_stats
+
+        for _, row in insts_to_show.iterrows():
+            inst_name = row['Institution']
+            pub_count = row['Publications']
+            
+            with st.expander(f"🏫 {inst_name} ({pub_count} publications)"):
+                inst_dois = partner_inst_df[partner_inst_df['institution'] == inst_name]['doi'].unique()
+                relevant_df = display_df[display_df['doi'].isin(inst_dois)]
+                
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.write("**👤 Chercheurs nantais impliqués :**")
+                    nantes_researchers = relevant_df[relevant_df['is_nantes'] == True]['author'].unique()
+                    nantes_researchers = sorted([r for r in nantes_researchers if r])
+                    # Limitation du nombre affiché pour la lisibilité, avec info supplémentaire
+                    display_researchers = nantes_researchers[:10]
+                    st.write(", ".join(display_researchers) + ("..." if len(nantes_researchers) > 10 else ""))
+                    
+                with c2:
+                    st.write("**🎓 Domaines de recherche :**")
+                    domains = relevant_df['subfields'].str.split('|').explode().str.strip()
+                    domains = sorted(domains[domains != ""].dropna().unique())
+                    st.write(", ".join(domains[:5]) + ("..." if len(domains) > 5 else ""))
+                    
+                    st.write("**🔬 Sujets de recherche :**")
+                    topics = relevant_df['topics'].str.split('|').explode().str.strip()
+                    topics = sorted(topics[topics != ""].dropna().unique())
+                    st.write(", ".join(topics[:5]) + ("..." if len(topics) > 5 else ""))
+                
                 st.write("---")
-                
-                if 'subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0]):
-                    subfields_list = work_data['subfields'].iloc[0].split('|')
-                    st.write("🎓 **Domaines de recherche :**")
-                    st.write(", ".join(subfields_list))
-                
-                if 'topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0]):
-                    topics_list = work_data['topics'].iloc[0].split('|')
-                    st.write("🔬 **Sujets de recherche :**")
-                    st.write(", ".join(topics_list))
-            
-            openalex_id = work_data['work_id'].iloc[0]
-            st.caption(f"**DOI:** [{doi}]({doi}) | **OpenAlex:** [{openalex_id}](https://openalex.org/works/{openalex_id})")
+                st.write("**📄 Publications associées :**")
+                unique_pubs = relevant_df[['doi', 'year', 'title']].drop_duplicates().sort_values('year', ascending=False)
+                for _, pub_row in unique_pubs.iterrows():
+                    pub_title = pub_row['title'] if not pd.isna(pub_row['title']) else "Sans titre"
+                    st.markdown(f"- ({pub_row['year']}) [{pub_title}]({pub_row['doi']})")
