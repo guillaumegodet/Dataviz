@@ -18,8 +18,8 @@ def get_country_name(code):
 @st.cache_data
 def load_data():
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, "cooperations_ls2n.csv")
-    df = pd.read_csv(file_path)
+    file_path = os.path.join(current_dir, "cooperations_ls2n.parquet")
+    df = pd.read_parquet(file_path)
     # On s'assure que les noms sont bien formatés pour la recherche
     df['author'] = df['author'].fillna("Inconnu")
     return df

@@ -116,6 +116,7 @@ def get_cooperations():
 # Lancer l'extraction
 df = get_cooperations()
 
-# Sauvegarder pour le dashboard
+# Sauvegarder pour le dashboard (Parquet = + rapide et + léger)
+df.to_parquet("cooperations_ls2n.parquet", index=False)
 df.to_csv("cooperations_ls2n.csv", index=False)
-print("Fichier généré : cooperations_ls2n.csv")
+print("Fichiers générés : cooperations_ls2n.parquet et cooperations_ls2n.csv")
