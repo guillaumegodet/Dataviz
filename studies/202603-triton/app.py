@@ -42,22 +42,6 @@ year_range = st.sidebar.slider(
     value=(2020, 2025) # Valeur par défaut
 )
 
-st.sidebar.header("🔍 Recherche par Chercheur")
-
-nantes_authors_list = sorted(df[df['is_nantes'] == True]['author'].unique())
-selected_author = st.sidebar.selectbox(
-    "Choisir un auteur nantais :",
-    ["Tous les auteurs"] + nantes_authors_list
-)
-
-# --- LOGIQUE DE FILTRAGE PAR AUTEUR ---
-if selected_author != "Tous les auteurs":
-    author_dois = df[df['author'] == selected_author]['doi'].unique()
-    working_df = df[df['doi'].isin(author_dois)]
-    st.sidebar.success(f"Affichage des coopérations pour : {selected_author}")
-else:
-    working_df = df
-
 # --- FILTRE PAYS (Dynamique selon l'auteur choisi) ---
 st.sidebar.header("🌍 Filtre Géographique")
 # On "explose" les pays pour avoir une liste propre d'individus
@@ -84,8 +68,8 @@ all_subfields_series = working_df['subfields'].str.split('|').explode().str.stri
 available_subfields = sorted(all_subfields_series.dropna().unique())
 selected_subfield = st.sidebar.selectbox("Choisir un domaine :", ["Tous les domaines"] + available_subfields)
 
-# --- FILTRE THÈME (Topics) ---
-st.sidebar.header("🔬 Thème de recherche")
+# --- FILTRE SUJET (Topics) ---
+st.sidebar.header("🔬 Sujet de recherche")
 # Filtrer les thèmes disponibles selon le domaine choisi pour plus de pertinence
 temp_df = working_df
 if selected_subfield != "Tous les domaines":
@@ -93,7 +77,23 @@ if selected_subfield != "Tous les domaines":
 
 all_topics_series = temp_df['topics'].str.split('|').explode().str.strip()
 available_topics = sorted(all_topics_series.dropna().unique())
-selected_topic = st.sidebar.selectbox("Choisir un thème :", ["Tous les thèmes"] + available_topics)
+selected_topic = st.sidebar.selectbox("Choisir un sujet :", ["Tous les sujets"] + available_topics)
+
+# --- RECHERCHE PAR CHERCHEUR (Déplacé en bas) ---
+st.sidebar.header("👤 Chercheur Nantais")
+nantes_authors_list = sorted(df[df['is_nantes'] == True]['author'].unique())
+selected_author = st.sidebar.selectbox(
+    "Filtrer par auteur nantais :",
+    ["Tous les auteurs"] + nantes_authors_list
+)
+
+# --- LOGIQUE DE FILTRAGE PAR AUTEUR (Exécutée après les autres filtres si nécessaire) ---
+if selected_author != "Tous les auteurs":
+    author_dois = df[df['author'] == selected_author]['doi'].unique()
+    working_df = df[df['doi'].isin(author_dois)]
+    # st.sidebar.success(f"Filtre actif : {selected_author}")
+else:
+    working_df = df
 
 # --- LOGIQUE DE FILTRAGE FINAL ---
 filtered_df = working_df.copy()
@@ -113,7 +113,7 @@ if selected_subfield != "Tous les domaines":
     s_dois = filtered_df[filtered_df['subfields'].str.contains(selected_subfield, na=False, regex=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(s_dois)]
 
-if selected_topic != "Tous les thèmes":
+if selected_topic != "Tous les sujets":
     t_dois = filtered_df[filtered_df['topics'].str.contains(selected_topic, na=False, regex=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(t_dois)]
 
@@ -172,6 +172,30 @@ with col1:
         st.plotly_chart(fig_authors, use_container_width=True)
     else:
         st.info("Aucun auteur nantais trouvé.")
+
+    st.write("---")
+    st.write("### 🎓 Domaines (Subfields)")
+    paper_subfields = display_df[['doi', 'subfields']].drop_duplicates()
+    exploded_subfields = paper_subfields.assign(subfields=paper_subfields['subfields'].str.split('|')).explode('subfields')
+    stats_subfields = exploded_subfields['subfields'].str.strip().value_counts().reset_index()
+    stats_subfields.columns = ['Domaine', 'Publications']
+    
+    if not stats_subfields.empty:
+        fig_sub = px.bar(stats_subfields.head(10), y='Domaine', x='Publications', orientation='h', color='Publications', color_continuous_scale='Blues')
+        fig_sub.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
+        st.plotly_chart(fig_sub, use_container_width=True)
+
+    st.write("---")
+    st.write("### 🔬 Sujets (Topics)")
+    paper_topics = display_df[['doi', 'topics']].drop_duplicates()
+    exploded_topics = paper_topics.assign(topics=paper_topics['topics'].str.split('|')).explode('topics')
+    stats_topics = exploded_topics['topics'].str.strip().value_counts().reset_index()
+    stats_topics.columns = ['Sujet', 'Publications']
+    
+    if not stats_topics.empty:
+        fig_top = px.bar(stats_topics.head(10), y='Sujet', x='Publications', orientation='h', color='Publications', color_continuous_scale='Reds')
+        fig_top.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
+        st.plotly_chart(fig_top, use_container_width=True)
 
 with col2:
     dois = display_df['doi'].dropna().unique()
@@ -234,7 +258,7 @@ with col2:
                 
                 if 'topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0]):
                     topics_list = work_data['topics'].iloc[0].split('|')
-                    st.write("🔬 **Thèmes de recherche :**")
+                    st.write("🔬 **Sujets de recherche :**")
                     st.write(", ".join(topics_list))
             
             openalex_id = work_data['work_id'].iloc[0]
