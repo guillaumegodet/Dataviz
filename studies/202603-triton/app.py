@@ -42,6 +42,16 @@ year_range = st.sidebar.slider(
     value=(2020, 2025) # Valeur par défaut
 )
 
+# On initialise working_df avec les données de base (ou filtrées par auteur si déjà sélectionné)
+if 'selected_author' not in st.session_state:
+    st.session_state.selected_author = "Tous les auteurs"
+
+if st.session_state.selected_author != "Tous les auteurs":
+    author_dois = df[df['author'] == st.session_state.selected_author]['doi'].unique()
+    working_df = df[df['doi'].isin(author_dois)]
+else:
+    working_df = df
+
 # --- FILTRE PAYS (Dynamique selon l'auteur choisi) ---
 st.sidebar.header("🌍 Filtre Géographique")
 # On "explose" les pays pour avoir une liste propre d'individus
@@ -84,16 +94,9 @@ st.sidebar.header("👤 Chercheur Nantais")
 nantes_authors_list = sorted(df[df['is_nantes'] == True]['author'].unique())
 selected_author = st.sidebar.selectbox(
     "Filtrer par auteur nantais :",
-    ["Tous les auteurs"] + nantes_authors_list
+    ["Tous les auteurs"] + nantes_authors_list,
+    key="selected_author"
 )
-
-# --- LOGIQUE DE FILTRAGE PAR AUTEUR (Exécutée après les autres filtres si nécessaire) ---
-if selected_author != "Tous les auteurs":
-    author_dois = df[df['author'] == selected_author]['doi'].unique()
-    working_df = df[df['doi'].isin(author_dois)]
-    # st.sidebar.success(f"Filtre actif : {selected_author}")
-else:
-    working_df = df
 
 # --- LOGIQUE DE FILTRAGE FINAL ---
 filtered_df = working_df.copy()
