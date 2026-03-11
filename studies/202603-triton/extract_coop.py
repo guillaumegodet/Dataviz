@@ -58,7 +58,7 @@ def get_cooperations():
     query = (
         Works()
         .filter(institutions={"id": "I4210117005"})
-        .filter(from_publication_date="2020-01-01", to_publication_date="2025-12-31")
+        .filter(from_publication_date="2000-01-01", to_publication_date="2025-12-31")
     )
     
     results = []

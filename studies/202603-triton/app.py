@@ -33,7 +33,15 @@ def load_data():
 
 df = load_data()
 
-# --- SIDEBAR : RECHERCHE PAR AUTEUR NANTAIS ---
+# --- SIDEBAR : FILTRES ---
+st.sidebar.header("📅 Période")
+year_range = st.sidebar.slider(
+    "Sélectionner la plage d'années :",
+    min_value=2000,
+    max_value=2025,
+    value=(2020, 2025) # Valeur par défaut
+)
+
 st.sidebar.header("🔍 Recherche par Chercheur")
 
 nantes_authors_list = sorted(df[df['is_nantes'] == True]['author'].unique())
@@ -90,6 +98,9 @@ selected_topic = st.sidebar.selectbox("Choisir un thème :", ["Tous les thèmes"
 # --- LOGIQUE DE FILTRAGE FINAL ---
 filtered_df = working_df.copy()
 
+# Filtre par année
+filtered_df = filtered_df[(filtered_df['year'] >= year_range[0]) & (filtered_df['year'] <= year_range[1])]
+
 if selected_country != "Tous les pays":
     c_dois = filtered_df[filtered_df['country'].str.contains(selected_country, na=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(c_dois)]
@@ -109,7 +120,7 @@ if selected_topic != "Tous les thèmes":
 display_df = filtered_df
 
 # --- AFFICHAGE DES RÉSULTATS ---
-st.title(f"Collaborations : {selected_author if selected_author != 'Tous les auteurs' else 'LS2N'} (2020-2025)")
+st.title(f"Collaborations : {selected_author if selected_author != 'Tous les auteurs' else 'LS2N'} ({year_range[0]}-{year_range[1]})")
 
 st.markdown("""
 Cet observatoire présente les publications scientifiques co-signées par des membres du **LS2N** avec des partenaires internationaux. 
