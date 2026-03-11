@@ -22,6 +22,11 @@ def load_data():
     df = pd.read_parquet(file_path)
     # On s'assure que les noms sont bien formatés pour la recherche
     df['author'] = df['author'].fillna("Inconnu")
+    
+    # Sécurité : si le cache Streamlit est ancien et n'a pas la colonne topics
+    if 'topics' not in df.columns:
+        df['topics'] = ""
+        
     return df
 
 df = load_data()
