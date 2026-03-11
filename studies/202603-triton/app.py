@@ -132,6 +132,28 @@ with col1:
     else:
         st.info("Aucune collaboration internationale sur ces critères.")
 
+    st.write("---")
+    st.write("### 👥 Auteurs Nantais")
+    # Compter les publications par auteurs nantais dans les données filtrées
+    nantes_authors_stats = display_df[display_df['is_nantes'] == True]['author'].value_counts().reset_index()
+    nantes_authors_stats.columns = ['Auteur', 'Publications']
+    
+    if not nantes_authors_stats.empty:
+        # On limite aux 15 premiers pour la lisibilité
+        top_nantes_authors = nantes_authors_stats.head(15)
+        fig_authors = px.bar(
+            top_nantes_authors, 
+            y='Auteur', 
+            x='Publications', 
+            orientation='h',
+            color='Publications',
+            color_continuous_scale='Viridis'
+        )
+        fig_authors.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
+        st.plotly_chart(fig_authors, use_container_width=True)
+    else:
+        st.info("Aucun auteur nantais trouvé.")
+
 with col2:
     dois = display_df['doi'].dropna().unique()
     total_items = len(dois)
