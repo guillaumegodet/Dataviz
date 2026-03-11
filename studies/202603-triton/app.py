@@ -203,7 +203,7 @@ with col1:
 with col2:
     view_mode = st.radio(
         "Mode d'affichage :",
-        options=["Par Publications", "Par Universités partenaires"],
+        options=["Par Publications", "Par Universités partenaires", "Par Carte"],
         horizontal=True
     )
     
@@ -276,7 +276,7 @@ with col2:
                 openalex_id = work_data['work_id'].iloc[0]
                 st.caption(f"**DOI:** [{doi}]({doi}) | **OpenAlex:** [{openalex_id}](https://openalex.org/works/{openalex_id})")
 
-    else:
+    elif view_mode == "Par Universités partenaires":
         # Mode : Universités partenaires
         partner_inst_df = display_df[display_df['is_nantes'] == False][['doi', 'institution']].copy()
         partner_inst_df['institution'] = partner_inst_df['institution'].fillna("")
@@ -339,3 +339,121 @@ with col2:
                 for _, pub_row in unique_pubs.iterrows():
                     pub_title = pub_row['title'] if not pd.isna(pub_row['title']) else "Sans titre"
                     st.markdown(f"- ({pub_row['year']}) [{pub_title}]({pub_row['doi']})")
+
+    elif view_mode == "Par Carte":
+        st.write("### 🗺️ Carte des Universités")
+        st.markdown("Cliquez sur une université sur la carte ci-dessous pour filtrer et afficher les détails en-dessous.")
+        
+        # 1. Extraction et formatage des données géographiques
+        df_copy = display_df[display_df['is_nantes'] == False].copy()
+        
+        # Eclater les colonnes parallèles
+        records = []
+        for _, row in df_copy.iterrows():
+            insts = str(row['institution']).split('|')
+            lats = str(row.get('lat', '')).split('|')
+            lons = str(row.get('lon', '')).split('|')
+            countries = str(row['country']).split('|')
+            
+            # Alignement en cas d'erreur de dimension
+            max_len = max(len(insts), len(lats), len(lons), len(countries))
+            insts += [''] * (max_len - len(insts))
+            lats += [''] * (max_len - len(lats))
+            lons += [''] * (max_len - len(lons))
+            countries += [''] * (max_len - len(countries))
+            
+            for i, inst in enumerate(insts):
+                inst = inst.strip()
+                if inst and lats[i].strip() and lons[i].strip():
+                    records.append({
+                        'doi': row['doi'],
+                        'institution': inst,
+                        'lat': lats[i].strip(),
+                        'lon': lons[i].strip(),
+                        'country_code': countries[i].strip()
+                    })
+                    
+        map_df = pd.DataFrame(records)
+        
+        if map_df.empty:
+            st.info("Aucune donnée géographique disponible pour cette sélection.")
+        else:
+            # Agréger par institution
+            inst_stats = map_df.groupby(['institution', 'lat', 'lon', 'country_code'])['doi'].nunique().reset_index()
+            inst_stats.columns = ['Institution', 'lat', 'lon', 'country_code', 'Publications']
+            
+            inst_stats['lat'] = pd.to_numeric(inst_stats['lat'], errors='coerce')
+            inst_stats['lon'] = pd.to_numeric(inst_stats['lon'], errors='coerce')
+            inst_stats = inst_stats.dropna(subset=['lat', 'lon'])
+            inst_stats['Pays'] = inst_stats['country_code'].apply(get_country_name)
+            
+            # Génération de la carte via Plotly Express
+            fig_map = px.scatter_geo(
+                inst_stats,
+                lat='lat',
+                lon='lon',
+                size='Publications',
+                size_max=30,
+                hover_name='Institution',
+                custom_data=['Institution', 'Publications', 'Pays'],
+                color='Publications',
+                color_continuous_scale='Turbo',
+                projection="natural earth"
+            )
+            # Améliorer le tooltip
+            fig_map.update_traces(
+                hovertemplate="<b>%{customdata[0]}</b><br>Pays: %{customdata[2]}<br>Publications: %{customdata[1]}<extra></extra>"
+            )
+            fig_map.update_layout(
+                margin={"r":0,"t":0,"l":0,"b":0},
+                geo=dict(showcoastlines=True, coastlinecolor="LightBlue", showland=True, landcolor="WhiteSmoke", showocean=True, oceancolor="AliceBlue")
+            )
+            
+            # Utilisation de on_select pour rendre la carte cliquable (disponible depuis Streamlit 1.35)
+            try:
+                event = st.plotly_chart(fig_map, use_container_width=True, on_select="rerun", selection_mode=("points"))
+            except Exception:
+                # Fallback pour les anciennes versions de Streamlit
+                st.plotly_chart(fig_map, use_container_width=True)
+                event = None
+                st.warning("La sélection sur carte n'est pas supportée par votre version de Streamlit.")
+            
+            st.write("---")
+            
+            # Logique d'affichage des détails après clic
+            if event and len(event.selection.points) > 0:
+                selected_inst_name = event.selection.points[0].customdata[0]
+                pub_count = event.selection.points[0].customdata[1]
+                
+                st.write(f"### 🏫 {selected_inst_name} ({pub_count} publications)")
+                
+                inst_dois = map_df[map_df['institution'] == selected_inst_name]['doi'].unique()
+                relevant_df = display_df[display_df['doi'].isin(inst_dois)]
+                
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.write("**👤 Chercheurs nantais impliqués :**")
+                    nantes_researchers = relevant_df[relevant_df['is_nantes'] == True]['author'].unique()
+                    nantes_researchers = sorted([r for r in nantes_researchers if r])
+                    display_researchers = nantes_researchers[:15]
+                    st.write(", ".join(display_researchers) + ("..." if len(nantes_researchers) > 15 else ""))
+                    
+                with c2:
+                    st.write("**🎓 Domaines de recherche :**")
+                    domains = relevant_df['subfields'].str.split('|').explode().str.strip()
+                    domains = sorted(domains[domains != ""].dropna().unique())
+                    st.write(", ".join(domains[:5]) + ("..." if len(domains) > 5 else ""))
+                    
+                    st.write("**🔬 Sujets de recherche :**")
+                    topics = relevant_df['topics'].str.split('|').explode().str.strip()
+                    topics = sorted(topics[topics != ""].dropna().unique())
+                    st.write(", ".join(topics[:5]) + ("..." if len(topics) > 5 else ""))
+                
+                st.write("**📄 Publications associées :**")
+                unique_pubs = relevant_df[['doi', 'year', 'title']].drop_duplicates().sort_values('year', ascending=False)
+                for _, pub_row in unique_pubs.iterrows():
+                    pub_title = pub_row['title'] if not pd.isna(pub_row['title']) else "Sans titre"
+                    st.markdown(f"- ({pub_row['year']}) [{pub_title}]({pub_row['doi']})")
+                    
+            else:
+                st.info("👆 Cliquez sur une bulle de la carte pour afficher les détails des partenariats avec cette université.")
