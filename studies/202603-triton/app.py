@@ -58,7 +58,26 @@ selected_country = st.sidebar.selectbox(
 # Filtrage final pour l'affichage
 if selected_country != "Tous les pays":
     # On cherche le pays sélectionné dans la chaîne (ex: "FR|US")
-    final_dois = working_df[working_df['country'].str.contains(selected_country, na=False)]['doi'].unique()
+    country_mask = working_df['country'].str.contains(selected_country, na=False)
+    country_dois = working_df[country_mask]['doi'].unique()
+    
+    # Extraire les établissements associés à ce pays pour le 2ème filtre
+    all_insts = working_df[country_mask]['institution'].str.split('|').explode().str.strip()
+    available_insts = sorted(all_insts.dropna().unique())
+    
+    selected_inst = st.sidebar.selectbox(
+        "Choisir un établissement :", 
+        ["Tous les établissements"] + available_insts
+    )
+    
+    if selected_inst != "Tous les établissements":
+        # On utilise regex=False car certains noms d'établissements ont des parenthèses
+        inst_dois = working_df[working_df['institution'].str.contains(selected_inst, na=False, regex=False)]['doi'].unique()
+        # Intersection des publications du pays et de l'établissement
+        final_dois = list(set(country_dois).intersection(inst_dois))
+    else:
+        final_dois = country_dois
+        
     display_df = working_df[working_df['doi'].isin(final_dois)]
 else:
     display_df = working_df
