@@ -85,6 +85,11 @@ else:
 # --- AFFICHAGE DES RÉSULTATS ---
 st.title(f"Collaborations : {selected_author if selected_author != 'Tous les auteurs' else 'LS2N'} (2020-2025)")
 
+st.markdown("""
+Cet observatoire présente les publications scientifiques co-signées par des membres du **LS2N** avec des partenaires internationaux. 
+💡 **Conseil :** Utilisez les filtres dans le menu à gauche pour explorer par chercheur ou par zone géographique.
+""")
+
 col1, col2 = st.columns([1, 2])
 
 with col1:
@@ -103,9 +108,25 @@ with col1:
 
 with col2:
     dois = display_df['doi'].dropna().unique()
-    st.write(f"### 📄 Publications ({len(dois)})")
+    total_items = len(dois)
+    ITEMS_PER_PAGE = 20
+    total_pages = (total_items - 1) // ITEMS_PER_PAGE + 1 if total_items > 0 else 0
+
+    st.write(f"### 📄 Publications ({total_items})")
     
-    for doi in dois:
+    if total_pages > 1:
+        # On utilise une colonne pour centrer le sélecteur de page ou le mettre discrètement
+        page_col1, page_col2 = st.columns([1, 1])
+        with page_col1:
+            current_page = st.number_input(f"Page (sur {total_pages})", min_value=1, max_value=total_pages, step=1, value=1)
+        
+        start_idx = (current_page - 1) * ITEMS_PER_PAGE
+        end_idx = start_idx + ITEMS_PER_PAGE
+        dois_to_show = dois[start_idx:end_idx]
+    else:
+        dois_to_show = dois
+
+    for doi in dois_to_show:
         work_data = display_df[display_df['doi'] == doi]
         if work_data.empty:
             continue
