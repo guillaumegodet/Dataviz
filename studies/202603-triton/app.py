@@ -55,32 +55,36 @@ selected_country = st.sidebar.selectbox(
     format_func=lambda x: get_country_name(x) if x != "Tous les pays" else x
 )
 
-# Filtrage final pour l'affichage
+# Sous-filtre établissement (uniquement si pays choisi)
+selected_inst = "Tous les établissements"
 if selected_country != "Tous les pays":
-    # On cherche le pays sélectionné dans la chaîne (ex: "FR|US")
     country_mask = working_df['country'].str.contains(selected_country, na=False)
-    country_dois = working_df[country_mask]['doi'].unique()
-    
-    # Extraire les établissements associés à ce pays pour le 2ème filtre
     all_insts = working_df[country_mask]['institution'].str.split('|').explode().str.strip()
     available_insts = sorted(all_insts.dropna().unique())
+    selected_inst = st.sidebar.selectbox("Choisir un établissement :", ["Tous les établissements"] + available_insts)
+
+# --- FILTRE THÈME (Topics) ---
+st.sidebar.header("🔬 Thème de recherche")
+all_topics_series = working_df['topics'].str.split('|').explode().str.strip()
+available_topics = sorted(all_topics_series.dropna().unique())
+selected_topic = st.sidebar.selectbox("Choisir un thème :", ["Tous les thèmes"] + available_topics)
+
+# --- LOGIQUE DE FILTRAGE FINAL ---
+filtered_df = working_df.copy()
+
+if selected_country != "Tous les pays":
+    c_dois = filtered_df[filtered_df['country'].str.contains(selected_country, na=False)]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(c_dois)]
     
-    selected_inst = st.sidebar.selectbox(
-        "Choisir un établissement :", 
-        ["Tous les établissements"] + available_insts
-    )
-    
-    if selected_inst != "Tous les établissements":
-        # On utilise regex=False car certains noms d'établissements ont des parenthèses
-        inst_dois = working_df[working_df['institution'].str.contains(selected_inst, na=False, regex=False)]['doi'].unique()
-        # Intersection des publications du pays et de l'établissement
-        final_dois = list(set(country_dois).intersection(inst_dois))
-    else:
-        final_dois = country_dois
-        
-    display_df = working_df[working_df['doi'].isin(final_dois)]
-else:
-    display_df = working_df
+if selected_inst != "Tous les établissements":
+    i_dois = filtered_df[filtered_df['institution'].str.contains(selected_inst, na=False, regex=False)]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(i_dois)]
+
+if selected_topic != "Tous les thèmes":
+    t_dois = filtered_df[filtered_df['topics'].str.contains(selected_topic, na=False, regex=False)]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(t_dois)]
+
+display_df = filtered_df
 
 # --- AFFICHAGE DES RÉSULTATS ---
 st.title(f"Collaborations : {selected_author if selected_author != 'Tous les auteurs' else 'LS2N'} (2020-2025)")
@@ -154,6 +158,13 @@ with col2:
                     countries_label = ", ".join(other_countries)
                     inst_label = r['institution'].replace('|', ' / ')
                     st.write(f"🌎 {r['author']}  \n*{inst_label}* ({countries_label})")
+            
+            # Affichage des thèmes (Topics)
+            if 'topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0]):
+                topics_list = work_data['topics'].iloc[0].split('|')
+                st.write("---")
+                st.write("🔬 **Thèmes de recherche :**")
+                st.write(", ".join(topics_list))
             
             openalex_id = work_data['work_id'].iloc[0]
             st.caption(f"**DOI:** [{doi}]({doi}) | **OpenAlex:** [{openalex_id}](https://openalex.org/works/{openalex_id})")

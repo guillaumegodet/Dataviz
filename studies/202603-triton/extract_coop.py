@@ -70,6 +70,10 @@ def get_cooperations():
             title = work['display_name']
             year = work['publication_year']
             
+            # Extraire les thèmes (topics)
+            topics = [t.get('display_name') for t in work.get('topics', [])]
+            topics_str = "|".join(filter(None, topics))
+            
             # Analyser les auteurs et affiliations
             for auth in work.get('authorships', []):
                 author_name = auth['author']['display_name']
@@ -108,6 +112,7 @@ def get_cooperations():
                         "inst_id": "|".join(dict.fromkeys(filter(None, inst_ids))),
                         "ror": "|".join(dict.fromkeys(filter(None, rors))),
                         "country": "|".join(dict.fromkeys(filter(None, countries))),
+                        "topics": topics_str,
                         "is_nantes": any_is_nantes
                     })
 
