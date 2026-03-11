@@ -134,8 +134,8 @@ with col1:
 
     st.write("---")
     st.write("### 👥 Auteurs Nantais")
-    # Compter les publications par auteurs nantais dans les données filtrées
-    nantes_authors_stats = display_df[display_df['is_nantes'] == True]['author'].value_counts().reset_index()
+    # Compter les publications uniques (par DOI) par auteurs nantais dans les données filtrées
+    nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author')['doi'].nunique().reset_index()
     nantes_authors_stats.columns = ['Auteur', 'Publications']
     
     if not nantes_authors_stats.empty:
