@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import pycountry
+import os
 
 st.set_page_config(page_title="Dashboard Coopération Nantes", layout="wide")
 
@@ -16,7 +17,9 @@ def get_country_name(code):
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("cooperations_ls2n.csv")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, "cooperations_ls2n.csv")
+    df = pd.read_csv(file_path)
     # On s'assure que les noms sont bien formatés pour la recherche
     df['author'] = df['author'].fillna("Inconnu")
     return df
