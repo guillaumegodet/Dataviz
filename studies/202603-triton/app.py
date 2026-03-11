@@ -131,9 +131,16 @@ col1, col2 = st.columns([1, 2])
 
 with col1:
     st.write("### 🚩 Pays partenaires")
-    # On explose pour compter chaque pays individuellement
-    exploded_countries = display_df['country'].str.split('|').explode().str.strip()
-    stats_countries = exploded_countries[exploded_countries != 'FR'].value_counts().reset_index()
+    # On s'assure de ne compter chaque pays qu'une seule fois par publication
+    # 1. On récupère les couples (DOI, liste de pays) uniques
+    paper_countries = display_df[['doi', 'country']].drop_duplicates()
+    # 2. On éclate les pays et on dédoublonne pour avoir des couples (DOI, pays) uniques
+    exploded_countries = paper_countries.assign(country=paper_countries['country'].str.split('|')).explode('country')
+    exploded_countries['country'] = exploded_countries['country'].str.strip()
+    unique_paper_country = exploded_countries.drop_duplicates()
+    
+    # 3. On compte et on exclut la France
+    stats_countries = unique_paper_country[unique_paper_country['country'] != 'FR']['country'].value_counts().reset_index()
     stats_countries.columns = ['country_code', 'count']
     stats_countries['country_name'] = stats_countries['country_code'].apply(get_country_name)
     
