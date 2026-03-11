@@ -137,6 +137,7 @@ with col1:
     # Compter les publications uniques (par DOI) par auteurs nantais dans les données filtrées
     nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author')['doi'].nunique().reset_index()
     nantes_authors_stats.columns = ['Auteur', 'Publications']
+    nantes_authors_stats = nantes_authors_stats.sort_values('Publications', ascending=False)
     
     if not nantes_authors_stats.empty:
         # On limite aux 15 premiers pour la lisibilité
