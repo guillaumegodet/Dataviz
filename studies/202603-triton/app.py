@@ -37,7 +37,7 @@ df = load_data()
 st.sidebar.header("📅 Période")
 year_range = st.sidebar.slider(
     "Sélectionner la plage d'années :",
-    min_value=2000,
+    min_value=2020,
     max_value=2025,
     value=(2020, 2025) # Valeur par défaut
 )
