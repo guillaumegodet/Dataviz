@@ -1,102 +1,96 @@
-# 📊 Cartographie Dynamique des domaines OpenAlex
+# 🔬 Dashboard Coopérations Internationales — Nantes Université
 
-## 🎯 Objectif du Projet
+> **Application en ligne :** [un-collab.streamlit.app](https://un-collab.streamlit.app/)
 
-Ce projet vise à fournir un outil interactif et dynamique pour visualiser la cartographie scientifique d'une institution (laboratoire, université, etc.) en exploitant les données de l'API OpenAlex.
+---
 
-L'outil permet de :
+## 🎯 Objectif
 
-1.  **Générer automatiquement** un Diagramme Solaire (**Sunburst Chart**) basé sur une institution et une période de temps définies.
-2.  Visualiser la répartition des publications selon la **hiérarchie disciplinaire OpenAlex** : **Domain** \> **Field** \> **Subfield**.
-3.  Analyser l'évolution des thèmes de recherche et identifier les domaines de force et les sujets émergents.
+Ce tableau de bord interactif permet d'explorer les **collaborations scientifiques internationales** de **Nantes Université** (et de ses unités de recherche) à partir des données de l'API [OpenAlex](https://openalex.org/).
 
-⚠️ Note Importante sur la Portée de l'Analyse :
+Il visualise les co-publications entre des chercheurs nantais et leurs partenaires internationaux, et permet de les filtrer selon de multiples dimensions.
 
-L'API OpenAlex, lors du groupement (group_by), retourne par défaut les 200 premières catégories ayant le plus grand nombre de publications liées.
+---
 
-Par conséquent, cette cartographie se concentre sur les 200 Subfields (sous-domaines) qui ont été les plus productifs pour l'institution et la période sélectionnées. Elle offre une vue ciblée des sujets dominants.
+## 🖥️ Fonctionnalités
 
------
+### Filtres disponibles (barre latérale)
+| Filtre | Description |
+|---|---|
+| 📅 **Période** | Plage d'années de publication (2020–2025) |
+| 🌍 **Pays partenaire** | Filtrage par pays + établissement étranger |
+| 🎓 **Domaine de recherche** | Sous-champ disciplinaire (OpenAlex subfields) |
+| 🔬 **Sujet de recherche** | Thème fin (OpenAlex topics) |
+| 🏢 **Unité de recherche** | Filtrage par labo nantais (LS2N, CEISAM, etc.) |
+| 👤 **Chercheur nantais** | Filtrage par auteur individuel |
 
-## 🚀 Technologie et Installation
+### Trois modes d'affichage
+- **Par Publications** : liste paginée des publications avec détail auteurs, domaines, DOI
+- **Par Universités partenaires** : classement des institutions, avec chercheurs nantais impliqués, domaines et publications associées
+- **Par Carte** : carte mondiale interactive (clic sur une bulle = détail de la relation)
 
-L'application est développée en Python et utilise le framework **Streamlit** pour l'interface web interactive.
+---
 
-### Prérequis
+## 🗂️ Structure du projet
 
-Assurez-vous d'avoir **Python 3.8+** installé.
-
-### Installation des Dépendances
-
-Clonez le dépôt et installez les bibliothèques nécessaires :
-
-```bash
-# Cloner le dépôt (adapter avec votre URL)
-git clone [URL_DE_VOTRE_DEPOT]
-cd [NOM_DU_DOSSIER]
-
-# Installer les dépendances Python
-pip install streamlit pandas requests plotly
+```
+studies/202603-unresearchcollab/
+├── app.py                        # Application Streamlit principale
+├── extract_coop.py               # Extraction des données depuis OpenAlex
+├── fetch_coords.py               # Géocodage des institutions (lat/lon)
+├── cooperations_nantesu.parquet  # Données (générées, versionnées pour Streamlit Cloud)
+└── requirements.txt              # Dépendances Python
 ```
 
------
+---
 
-## 🛠️ Utilisation de l'Application
+## 🚀 Utilisation en local
 
-### 1\. Structure du Fichier
+### 1. Installer les dépendances
 
-Le script principal qui exécute l'application est :
-
-  * `app_auto_generator.py` (ou le nom que vous lui avez donné).
-
-### 2\. Démarrage
-
-Pour lancer l'application, exécutez la commande suivante dans votre terminal :
+Avec [uv](https://github.com/astral-sh/uv) (recommandé) :
 
 ```bash
-streamlit run app_auto_generator.py
+uv run --with streamlit --with plotly --with pandas --with pycountry --with pyarrow streamlit run app.py
 ```
 
-L'application s'ouvrira automatiquement dans votre navigateur par défaut (généralement à `http://localhost:8501`).
+Ou avec pip :
 
-### 3\. Saisie des Paramètres
+```bash
+pip install streamlit plotly pandas pycountry pyarrow pyalex tqdm
+streamlit run app.py
+```
 
-Dans l'interface Streamlit, vous devrez renseigner deux champs :
+### 2. Régénérer les données (optionnel)
 
-| Paramètre | Description | Format d'Exemple |
-| :--- | :--- | :--- |
-| **Identifiant OpenAlex de l'Institution** | L'identifiant unique OpenAlex de l'institution (commence par `i`). | `i4210117005` |
-| **Année ou Période** | La période de publication à analyser. | `2022`, `2020-2023` |
+Si vous souhaitez rafraîchir les données depuis l'API OpenAlex :
 
-### 4\. Fonctionnement
+```bash
+# Étape 1 : extraction des publications et co-auteurs
+uv run --with pyalex --with tqdm --with pandas --with pyarrow extract_coop.py
 
-1.  Après avoir cliqué sur **"Générer la Cartographie"**, l'application effectue un premier appel à l'API OpenAlex pour obtenir les publications de l'institution groupées par **Subfield** et leur **compte**.
-2.  Elle interroge ensuite l'API OpenAlex pour chaque Subfield afin de récupérer son **Field** et son **Domain** parent (cette étape est parallélisée pour optimiser le temps d'attente).
-3.  Enfin, elle génère le **Diagramme Solaire Plotly** interactif.
+# Étape 2 : géocodage des institutions
+uv run --with pyalex --with tqdm --with pandas --with pyarrow fetch_coords.py
+```
 
------
+> ⚠️ L'extraction complète pour Nantes Université (2020–2025) prend environ **2–3 minutes** (pagination de l'API OpenAlex, ~10 000 publications).
 
-## 📂 Structure du Code (Aperçu)
+---
 
-Le script s'organise autour de trois fonctions clés :
+## 🔧 Données
 
-  * `fetch_subfield_counts(institution_id, period)` : Récupère les données brutes des comptes de publication par Subfield.
-  * `fetch_subfield_hierarchy(subfield_id)` : Récupère la classification complète (Domain, Field, Subfield) pour un identifiant donné.
-  * `get_full_data_and_generate_chart(...)` : Orchestre les appels, fusionne les données, et génère le graphique Streamlit/Plotly.
+Les données proviennent de l'API ouverte **[OpenAlex](https://openalex.org/)** et couvrent :
+- **Institution** : Nantes Université (`I97188460`) et les **42 unités de recherche** sous sa tutelle ainsi que Centrale Nantes (`i100445878`) 
+- **Période** : 2020–2025
+- **Colonnes** : DOI, titre, année, auteur, institution(s), pays, identifiants OpenAlex, domaines, sujets, coordonnées géographiques
 
------
+---
 
-## 🤝 Contribution
+## 🏢 Unités de recherche couvertes
 
-Les contributions, signalements de bugs et suggestions d'améliorations sont les bienvenus \!
+AAU · CAPHI · CDMO · CEISAM · CENS · CFV · CR2TI · CRCI2NA · CReAAH · CREN · CRHIA · CRINI · DCS · ESO · GeM · GEPEA · IETR · IICiMed · IMN · INCIT · IRDP · IREENA · ISOMER · ITX · LAMO · LEMNA · LETG · LHEEA · LLING · LMJL · LPG · LS2N · LTeN · MIP · PHAN · RMeS · SPHERE · SUBATECH · TaRGeT · TENS · US2B · Centrale Nantes · LPPL
 
-1.  Faire un fork du projet.
-2.  Créer votre branche de fonctionnalité (`git checkout -b feature/NouvelleFonctionnalite`).
-3.  Committer vos modifications (`git commit -am 'Ajouter Nouvelle Fonctionnalité'`).
-4.  Pousser vers la branche (`git push origin feature/NouvelleFonctionnalite`).
-5.  Créer une nouvelle Pull Request.
+---
 
------
-
-**Développé par :** guillaumegodet
-**Basé sur :** Données OpenAlex
+**Développé par :** [guillaumegodet](https://github.com/guillaumegodet)  
+**Données :** [OpenAlex](https://openalex.org/) (licence CC0)
