@@ -1,6 +1,6 @@
-# Données volumineuses générées (ne pas versionner)
-*.parquet
+# Données CSV volumineuses (ne pas versionner)
 *.csv
+# Les .parquet sont versionnés car nécessaires pour Streamlit Cloud
 
 # Python
 __pycache__/
