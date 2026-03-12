@@ -4,7 +4,7 @@ import plotly.express as px
 import pycountry
 import os
 
-st.set_page_config(page_title="Dashboard Coopération Nantes", layout="wide")
+st.set_page_config(page_title="Dashboard Coopération LS2N", layout="wide")
 
 def get_country_name(code):
     try:
@@ -126,7 +126,7 @@ display_df = filtered_df
 st.title(f"Collaborations : {selected_author if selected_author != 'Tous les auteurs' else 'LS2N'} ({year_range[0]}-{year_range[1]})")
 
 st.markdown("""
-Cet observatoire présente les publications scientifiques co-signées par des membres du **LS2N** avec des partenaires internationaux. 
+Ce tableau de bord présente les publications scientifiques co-signées par des membres du **LS2N** avec des partenaires internationaux. 
 💡 **Conseil :** Utilisez les filtres dans le menu à gauche pour explorer par chercheur ou par zone géographique.
 """)
 
@@ -149,7 +149,7 @@ with col1:
     
     if not stats_countries.empty:
         fig_pie = px.pie(stats_countries, values='count', names='country_name', hole=0.4)
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie, width="stretch")
     else:
         st.info("Aucune collaboration internationale sur ces critères.")
 
@@ -172,7 +172,7 @@ with col1:
             color_continuous_scale='Viridis'
         )
         fig_authors.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_authors, use_container_width=True)
+        st.plotly_chart(fig_authors, width="stretch")
     else:
         st.info("Aucun auteur nantais trouvé.")
 
@@ -186,7 +186,7 @@ with col1:
     if not stats_subfields.empty:
         fig_sub = px.bar(stats_subfields.head(10), y='Domaine', x='Publications', orientation='h', color='Publications', color_continuous_scale='Blues')
         fig_sub.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_sub, use_container_width=True)
+        st.plotly_chart(fig_sub, width="stretch")
 
     st.write("---")
     st.write("### 🔬 Sujets (Topics)")
@@ -198,7 +198,7 @@ with col1:
     if not stats_topics.empty:
         fig_top = px.bar(stats_topics.head(10), y='Sujet', x='Publications', orientation='h', color='Publications', color_continuous_scale='Reds')
         fig_top.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_top, use_container_width=True)
+        st.plotly_chart(fig_top, width="stretch")
 
 with col2:
     view_mode = st.radio(
@@ -411,10 +411,10 @@ with col2:
             
             # Utilisation de on_select pour rendre la carte cliquable (disponible depuis Streamlit 1.35)
             try:
-                event = st.plotly_chart(fig_map, use_container_width=True, on_select="rerun", selection_mode=("points"))
+                event = st.plotly_chart(fig_map, width="stretch", on_select="rerun", selection_mode=("points"))
             except Exception:
                 # Fallback pour les anciennes versions de Streamlit
-                st.plotly_chart(fig_map, use_container_width=True)
+                st.plotly_chart(fig_map, width="stretch")
                 event = None
                 st.warning("La sélection sur carte n'est pas supportée par votre version de Streamlit.")
             
@@ -422,8 +422,10 @@ with col2:
             
             # Logique d'affichage des détails après clic
             if event and len(event.selection.points) > 0:
-                selected_inst_name = event.selection.points[0].customdata[0]
-                pub_count = event.selection.points[0].customdata[1]
+                # Les points sont retournés sous forme de dictionnaires dans les versions récentes
+                selected_point = event.selection.points[0]
+                selected_inst_name = selected_point['customdata'][0]
+                pub_count = selected_point['customdata'][1]
                 
                 st.write(f"### 🏫 {selected_inst_name} ({pub_count} publications)")
                 
