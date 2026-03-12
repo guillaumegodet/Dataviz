@@ -1,6 +1,5 @@
 streamlit
 plotly
 pandas
-numpy
-requests
-matplotlib
+pyarrow
+pycountry
