@@ -609,7 +609,6 @@ elif view_mode == "Carte":
         except Exception:
             st.plotly_chart(fig_map, width="stretch", config={'scrollZoom': True})
             event = None
-            st.warning("La sélection sur carte n'est pas supportée par votre version de Streamlit.")
         
         st.write("---")
         
@@ -620,49 +619,41 @@ elif view_mode == "Carte":
             raw_insts = selected_point.get('customdata', [""])[0]
             selected_inst_names = raw_insts.split(' | ')
             
-            pub_count = selected_point.get('customdata', [0, 0])[1]
+            st.write(f"### 📍 Détail des institutions à cet emplacement")
             
-            label_title = selected_inst_names[0] + (f" (+ {len(selected_inst_names)-1} autres)" if len(selected_inst_names) > 1 else "")
-            st.write(f"### 📍 {label_title}")
-            if len(selected_inst_names) > 1:
-                st.info(f"Ce point regroupe : {', '.join(selected_inst_names)}")
-            
-            # Filtrer les DOIs pour TOUTES les institutions du cluster
-            inst_dois = map_df[map_df['institution'].isin(selected_inst_names)]['doi'].unique()
-            relevant_df = display_df[display_df['doi'].isin(inst_dois)]
-            
-            c1, c2 = st.columns(2)
-            with c1:
-                st.write("**👤 Chercheurs nantais impliqués :**")
-                nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
-                nantes_researchers_stats.columns = ['author', 'count']
+            # On affiche un bloc distinct (expander) pour chaque institution du groupe
+            for idx, inst_name in enumerate(selected_inst_names):
+                inst_dois = map_df[map_df['institution'] == inst_name]['doi'].unique()
+                relevant_df = display_df[display_df['doi'].isin(inst_dois)]
+                pub_count = len(inst_dois)
                 
-                display_list = []
-                for _, res_row in nantes_researchers_stats.head(15).iterrows():
-                    display_list.append(f"{res_row['author']} ({res_row['count']})")
-                
-                st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
-                
-            with c2:
-                render_domains_topics(relevant_df)
-            
-            st.write("**📄 Publications associées :**")
-            sorted_dois = relevant_df[['doi', 'year']].drop_duplicates().sort_values('year', ascending=False)['doi'].values
-            total_pubs = len(sorted_dois)
-            PUB_PAGE_SIZE = 10
-            total_pub_pages = max(1, (total_pubs - 1) // PUB_PAGE_SIZE + 1)
-            if total_pub_pages > 1:
-                pub_page = st.number_input(
-                    f"Page publications (sur {total_pub_pages}, {total_pubs} total)",
-                    min_value=1, max_value=total_pub_pages, step=1, value=1,
-                    key="pub_page_carte"
-                )
-                dois_slice = sorted_dois[(pub_page-1)*PUB_PAGE_SIZE : pub_page*PUB_PAGE_SIZE]
-            else:
-                dois_slice = sorted_dois
-            for pub_doi in dois_slice:
-                pub_data = relevant_df[relevant_df['doi'] == pub_doi]
-                if not pub_data.empty:
-                    render_publication(pub_doi, pub_data, selected_author, selected_country)
-            else:
-                st.info("👆 Cliquez sur une bulle de la carte pour afficher les détails des partenariats avec cette université.")
+                with st.expander(f"🏫 {inst_name} ({pub_count} publications)", expanded=True):
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        st.write("**👤 Chercheurs nantais impliqués :**")
+                        nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
+                        nantes_researchers_stats.columns = ['author', 'count']
+                        
+                        display_list = []
+                        for _, res_row in nantes_researchers_stats.head(15).iterrows():
+                            display_list.append(f"{res_row['author']} ({res_row['count']})")
+                        
+                        st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
+                        
+                    with c2:
+                        render_domains_topics(relevant_df)
+                    
+                    st.write("---")
+                    st.write("**📄 Publications associées :**")
+                    sorted_dois = relevant_df[['doi', 'year']].drop_duplicates().sort_values('year', ascending=False)['doi'].values
+                    
+                    # On affiche les publications sans pagination complexe ici pour plus de clarté
+                    for pub_doi in sorted_dois[:10]: # On montre les 10 dernières
+                        pub_data = relevant_df[relevant_df['doi'] == pub_doi]
+                        if not pub_data.empty:
+                            render_publication(pub_doi, pub_data, selected_author, selected_country)
+                    
+                    if len(sorted_dois) > 10:
+                        st.info(f"Et {len(sorted_dois)-10} autres publications...")
+        else:
+            st.info("👆 Cliquez sur une bulle de la carte pour afficher les détails individuels des universités à cet emplacement.")
