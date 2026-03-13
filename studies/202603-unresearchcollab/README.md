@@ -6,28 +6,28 @@
 
 ## 🎯 Objectif
 
-Ce tableau de bord interactif permet d'explorer les **collaborations scientifiques internationales** de **Nantes Université** (et de ses unités de recherche) à partir des données de l'API [OpenAlex](https://openalex.org/).
+Ce tableau de bord interactif permet d'explorer les **collaborations scientifiques internationales** de **Nantes Université** et de ses unités de recherche à partir des données de l'API [OpenAlex](https://openalex.org/).
 
-Il visualise les co-publications entre des chercheurs nantais et leurs partenaires internationaux, et permet de les filtrer selon de multiples dimensions.
+Il se concentre exclusivement sur les partenariats mondiaux en filtrant les co-affiliations françaises secondaires pour une meilleure visibilité des réseaux internationaux.
 
 ---
 
 ## 🖥️ Fonctionnalités
 
-### Filtres disponibles (barre latérale)
+### Filtres avancés (barre latérale)
 | Filtre | Description |
 |---|---|
-| 📅 **Période** | Plage d'années de publication (2020–2025) |
-| 🌍 **Pays partenaire** | Filtrage par pays + établissement étranger |
-| 🎓 **Domaine de recherche** | Sous-champ disciplinaire (OpenAlex subfields) |
-| 🔬 **Sujet de recherche** | Thème fin (OpenAlex topics) |
-| 🏢 **Unité de recherche** | Filtrage par labo nantais (LS2N, CEISAM, etc.) |
-| 👤 **Chercheur nantais** | Filtrage par auteur individuel |
+| 📅 **Période** | Plage d'années de publication (2020–2025). |
+| 🌍 **Pays partenaire** | Classés par volume de collaboration décroissant (+ volume affiché). |
+| 🎯 **Thématiques (Cascade)** | Hiérarchie OpenAlex : Domaines > Disciplines > Sous-disciplines > Sujets. |
+| 🏢 **Unité de recherche** | Filtrage par labo nantais (42 unités + Centrale Nantes). |
+| 👤 **Chercheur nantais** | Filtrage par auteur individuel (dynamique selon l'unité). |
+| 👥 **Taille de l'équipe** | Exclure les publications à très grand nombre d'auteurs (ex: CERN). |
 
-### Trois modes d'affichage
-- **Par Publications** : liste paginée des publications avec détail auteurs, domaines, DOI
-- **Par Universités partenaires** : classement des institutions, avec chercheurs nantais impliqués, domaines et publications associées
-- **Par Carte** : carte mondiale interactive (clic sur une bulle = détail de la relation)
+### Trois modes d'affichage plein écran
+- **🏫 Institutions** : Liste paginée des universités partenaires, avec thématiques dominantes, chercheurs nantais impliqués et publications détaillées.
+- **🗺️ Carte** : Carte mondiale interactive (Mapbox/OpenStreetMap) affichant les villes partenaires. Zoom à la molette et centrage calculé par pays.
+- **📊 Dataviz** : Vue d'ensemble statistique (Répartition par pays, Top auteurs nantais, Domaines et Sujets les plus publiés).
 
 ---
 
@@ -35,11 +35,11 @@ Il visualise les co-publications entre des chercheurs nantais et leurs partenair
 
 ```
 studies/202603-unresearchcollab/
-├── app.py                        # Application Streamlit principale
-├── extract_coop.py               # Extraction des données depuis OpenAlex
-├── fetch_coords.py               # Géocodage des institutions (lat/lon)
-├── cooperations_nantesu.parquet  # Données (générées, versionnées pour Streamlit Cloud)
-└── requirements.txt              # Dépendances Python
+├── app.py                        # Application Streamlit (Interface et Logique)
+├── extract_coop.py               # Script d'extraction filtrée (Nantes + International)
+├── fetch_coords.py               # Géocodage et enrichissement urbain
+├── cooperations_nantesu.parquet  # Données optimisées (versionnées pour le Cloud)
+└── requirements.txt              # Dépendances (incluant pycountry, pyalex, plotly)
 ```
 
 ---
@@ -48,41 +48,34 @@ studies/202603-unresearchcollab/
 
 ### 1. Installer les dépendances
 
-Avec [uv](https://github.com/astral-sh/uv) (recommandé) :
+D'abord, placez-vous dans le dossier de l'étude :
+```bash
+cd studies/202603-unresearchcollab
+```
 
+Avec [uv](https://github.com/astral-sh/uv) (recommandé) :
 ```bash
 uv run --with streamlit --with plotly --with pandas --with pycountry --with pyarrow streamlit run app.py
 ```
 
-Ou avec pip :
+### 2. Régénérer les données
 
+Pour rafraîchir les données et la géolocalisation :
 ```bash
-pip install streamlit plotly pandas pycountry pyarrow pyalex tqdm
-streamlit run app.py
+# 1. Extraction (Filtre Nantes+International, normalisation des IDs)
+uv run --with pyalex --with tqdm --with pandas --with pyarrow python extract_coop.py
+
+# 2. Géolocalisation (Villes, Lat, Lon)
+uv run --with pyalex --with tqdm --with pandas --with pyarrow python fetch_coords.py
 ```
-
-### 2. Régénérer les données (optionnel)
-
-Si vous souhaitez rafraîchir les données depuis l'API OpenAlex :
-
-```bash
-# Étape 1 : extraction des publications et co-auteurs
-uv run --with pyalex --with tqdm --with pandas --with pyarrow extract_coop.py
-
-# Étape 2 : géocodage des institutions
-uv run --with pyalex --with tqdm --with pandas --with pyarrow fetch_coords.py
-```
-
-> ⚠️ L'extraction complète pour Nantes Université (2020–2025) prend environ **2–3 minutes** (pagination de l'API OpenAlex, ~10 000 publications).
 
 ---
 
-## 🔧 Données
+## 🔧 Données et Optimisation
 
-Les données proviennent de l'API ouverte **[OpenAlex](https://openalex.org/)** et couvrent :
-- **Institution** : Nantes Université (`I97188460`) et les **42 unités de recherche** sous sa tutelle ainsi que Centrale Nantes (`i100445878`) 
-- **Période** : 2020–2025
-- **Colonnes** : DOI, titre, année, auteur, institution(s), pays, identifiants OpenAlex, domaines, sujets, coordonnées géographiques
+- **Filtrage International** : Les affiliations françaises non-nantaises (CNRS, INSERM, etc.) sont exclues dès l'extraction pour se concentrer sur les relations transfrontalières.
+- **Performance** : Utilisation du format Parquet pour un chargement instantané.
+- **Identifiants** : Utilisation des IDs OpenAlex normalisés pour Nantes Université (`I97188460`) et Centrale Nantes (`I100445878`).
 
 ---
 
