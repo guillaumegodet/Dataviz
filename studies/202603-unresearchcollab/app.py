@@ -192,19 +192,29 @@ df = load_data()
 
 # --- SIDEBAR : FILTRES ---
 st.sidebar.header("📅 Période")
+
+# Récupération de la période depuis l'URL
+url_years = st.query_params.get("years", "2020-2025")
+try:
+    y_min, y_max = map(int, url_years.split("-"))
+    default_years = (max(2020, y_min), min(2025, y_max))
+except:
+    default_years = (2020, 2025)
+
 year_range = st.sidebar.slider(
     "Sélectionner la plage d'années :",
     min_value=2020,
     max_value=2025,
-    value=(2020, 2025) # Valeur par défaut
+    value=default_years
 )
+st.query_params["years"] = f"{year_range[0]}-{year_range[1]}"
 
 # On filtre par année immédiatement pour alléger la suite
 working_df = df[(df['year'] >= year_range[0]) & (df['year'] <= year_range[1])]
 
 # On initialise working_df avec les données de base (ou filtrées par auteur si déjà sélectionné)
 if 'selected_author' not in st.session_state:
-    st.session_state.selected_author = "Tous les auteurs"
+    st.session_state.selected_author = st.query_params.get("author", "Tous les auteurs")
 
 if st.session_state.selected_author != "Tous les auteurs":
     author_dois = working_df[working_df['author'] == st.session_state.selected_author]['doi'].unique()
@@ -220,11 +230,17 @@ valid_countries = all_countries_series[(all_countries_series != 'FR') & (all_cou
 country_counts = valid_countries.value_counts()
 available_countries = list(country_counts.index)
 
+country_options = ["Tous les pays"] + available_countries
+url_country = st.query_params.get("country", "Tous les pays")
+country_idx = country_options.index(url_country) if url_country in country_options else 0
+
 selected_country = st.sidebar.selectbox(
     "Choisir un pays partenaire :", 
-    ["Tous les pays"] + available_countries,
+    country_options,
+    index=country_idx,
     format_func=lambda x: f"{get_country_name(x)} ({country_counts[x]})" if x != "Tous les pays" else x
 )
+st.query_params["country"] = selected_country
 
 # Sous-filtre établissement (uniquement si pays choisi)
 selected_inst = "Tous les établissements"
@@ -243,7 +259,11 @@ st.sidebar.header("🎯 Filtres Thématiques")
 # 1. Domaines
 all_domains = sorted(working_df['domains'].str.split('|').explode().str.strip().dropna().unique())
 if 'nan' in all_domains: all_domains.remove('nan')
-selected_domain = st.sidebar.selectbox("Filtre par domaine :", ["Tous les domaines"] + all_domains)
+domain_options = ["Tous les domaines"] + all_domains
+url_domain = st.query_params.get("domain", "Tous les domaines")
+domain_idx = domain_options.index(url_domain) if url_domain in domain_options else 0
+selected_domain = st.sidebar.selectbox("Filtre par domaine :", domain_options, index=domain_idx)
+st.query_params["domain"] = selected_domain
 
 # 2. Disciplines (Fields) - Cascade
 temp_df_fields = working_df
@@ -272,7 +292,10 @@ selected_topic = st.sidebar.selectbox("Filtre par sujet :", ["Tous les sujets"] 
 # --- FILTRE UNITÉ DE RECHERCHE ---
 st.sidebar.header("🏢 Unité de recherche")
 units_sorted = ["Toutes les unités"] + sorted(NANTES_MAP.values())
-selected_unit = st.sidebar.selectbox("Filtrer par unité nantaise :", units_sorted)
+url_unit = st.query_params.get("unit", "Toutes les unités")
+unit_idx = units_sorted.index(url_unit) if url_unit in units_sorted else 0
+selected_unit = st.sidebar.selectbox("Filtrer par unité nantaise :", units_sorted, index=unit_idx)
+st.query_params["unit"] = selected_unit
 
 # --- RECHERCHE PAR CHERCHEUR ---
 st.sidebar.header("👤 Chercheur Nantais")
@@ -284,11 +307,19 @@ if selected_unit != "Toutes les unités":
 else:
     nantes_authors_list = sorted(df[df['is_nantes'] == True]['author'].unique())
 
+author_options = ["Tous les auteurs"] + nantes_authors_list
+if st.session_state.selected_author not in author_options:
+    st.session_state.selected_author = "Tous les auteurs"
+
 selected_author = st.sidebar.selectbox(
     "Filtrer par auteur nantais :",
-    ["Tous les auteurs"] + nantes_authors_list,
+    author_options,
     key="selected_author"
 )
+st.query_params["author"] = selected_author
+
+st.sidebar.markdown("---")
+st.sidebar.info("🔗 L'URL de votre navigateur contient vos filtres actuels. Copiez-la pour partager cette vue.")
 
 # --- FILTRE NOMBRE D'AUTEURS ---
 st.sidebar.header("👥 Taille de l'équipe")
@@ -359,11 +390,17 @@ Ce tableau de bord présente les publications scientifiques co-signées par des 
 💡 **Conseil :** Utilisez les filtres dans le menu à gauche pour explorer par chercheur ou par zone géographique.
 """)
 
+view_options = ["Institutions", "Carte", "Dataviz"]
+url_mode = st.query_params.get("mode", "Institutions")
+mode_idx = view_options.index(url_mode) if url_mode in view_options else 0
+
 view_mode = st.radio(
     "Mode d'affichage :",
-    options=["Institutions", "Carte", "Dataviz"],
+    options=view_options,
+    index=mode_idx,
     horizontal=True
 )
+st.query_params["mode"] = view_mode
 
 st.write("---")
 
