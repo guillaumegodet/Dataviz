@@ -178,6 +178,11 @@ def load_data():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(current_dir, "cooperations_nantesu.parquet")
     df = pd.read_parquet(file_path)
+    
+    # Conversion forcée des colonnes catégorielles en chaînes pour éviter les 0 fantômes dans les filtres/groupbys
+    for col in df.select_dtypes(include=['category']).columns:
+        df[col] = df[col].astype(str)
+        
     # On s'assure que les noms sont bien formatés pour la recherche
     df['author'] = df['author'].fillna("Inconnu")
     
@@ -443,6 +448,7 @@ if view_mode == "Dataviz":
     valid_countries = unique_paper_country[(unique_paper_country['country'] != 'FR') & (unique_paper_country['country'] != '') & (unique_paper_country['country'] != 'nan')]
     stats_countries = valid_countries['country'].value_counts().reset_index()
     stats_countries.columns = ['country_code', 'count']
+    stats_countries = stats_countries[stats_countries['count'] > 0]
     stats_countries['country_name'] = stats_countries['country_code'].apply(get_country_name)
     
     if not stats_countries.empty:
@@ -456,6 +462,7 @@ if view_mode == "Dataviz":
     # Compter les publications uniques (par DOI) par auteurs nantais dans les données filtrées
     nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().reset_index()
     nantes_authors_stats.columns = ['Auteur', 'Publications']
+    nantes_authors_stats = nantes_authors_stats[nantes_authors_stats['Publications'] > 0]
     nantes_authors_stats = nantes_authors_stats.sort_values('Publications', ascending=False)
     
     if not nantes_authors_stats.empty:
@@ -513,6 +520,8 @@ elif view_mode == "Institutions":
     
     inst_stats = partner_inst_df.groupby('institution', observed=True)['doi'].nunique().reset_index()
     inst_stats.columns = ['Institution', 'Publications']
+    # Sécurité supplémentaire : on retire les lignes à 0 publications (problème de catégories sparse)
+    inst_stats = inst_stats[inst_stats['Publications'] > 0]
     inst_stats = inst_stats.sort_values('Publications', ascending=False)
     
     total_insts = len(inst_stats)
@@ -545,6 +554,7 @@ elif view_mode == "Institutions":
                 st.write("**👤 Chercheurs nantais impliqués :**")
                 nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
                 nantes_researchers_stats.columns = ['author', 'count']
+                nantes_researchers_stats = nantes_researchers_stats[nantes_researchers_stats['count'] > 0]
                 
                 display_list = []
                 for _, res_row in nantes_researchers_stats.head(15).iterrows():
@@ -695,6 +705,7 @@ elif view_mode == "Carte":
                         st.write("**👤 Chercheurs nantais impliqués :**")
                         nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
                         nantes_researchers_stats.columns = ['author', 'count']
+                        nantes_researchers_stats = nantes_researchers_stats[nantes_researchers_stats['count'] > 0]
                         
                         display_list = []
                         for _, res_row in nantes_researchers_stats.head(15).iterrows():
