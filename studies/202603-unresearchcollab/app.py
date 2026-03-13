@@ -534,14 +534,27 @@ elif view_mode == "Carte":
     if map_df.empty:
         st.info("Aucune donnée géographique disponible pour cette sélection.")
     else:
-        # Agréger par institution
-        inst_stats = map_df.groupby(['institution', 'lat', 'lon', 'country_code'])['doi'].nunique().reset_index()
-        inst_stats.columns = ['Institution', 'lat', 'lon', 'country_code', 'Publications']
+        # Agréger par POSITION (Clustering par coordonnées)
+        inst_stats = map_df.groupby(['lat', 'lon', 'country_code']).agg({
+            'doi': 'nunique',
+            'institution': lambda x: " | ".join(sorted(x.unique()))
+        }).reset_index()
+        
+        inst_stats.columns = ['lat', 'lon', 'country_code', 'Publications', 'All_Institutions']
         
         inst_stats['lat'] = pd.to_numeric(inst_stats['lat'], errors='coerce')
         inst_stats['lon'] = pd.to_numeric(inst_stats['lon'], errors='coerce')
         inst_stats = inst_stats.dropna(subset=['lat', 'lon'])
         inst_stats['Pays'] = inst_stats['country_code'].apply(get_country_name)
+
+        # Créer un libellé lisible pour la carte
+        def make_label(row):
+            insts = row['All_Institutions'].split(' | ')
+            if len(insts) > 1:
+                return f"{insts[0]} (+ {len(insts)-1} autres)"
+            return insts[0]
+        
+        inst_stats['Institution_Label'] = inst_stats.apply(make_label, axis=1)
         
         # Calcul du centre et du zoom
         if selected_country != "Tous les pays" and not inst_stats.empty:
@@ -567,9 +580,16 @@ elif view_mode == "Carte":
             lon='lon',
             size='Publications',
             size_max=30,
-            hover_name='Institution',
-            hover_data={'lat': False, 'lon': False, 'country_code': False, 'Pays': True, 'Publications': True},
-            custom_data=['Institution', 'Publications', 'Pays'],
+            hover_name='Institution_Label',
+            hover_data={
+                'lat': False, 
+                'lon': False, 
+                'country_code': False, 
+                'Pays': True, 
+                'Publications': True,
+                'All_Institutions': True
+            },
+            custom_data=['All_Institutions', 'Publications', 'Pays'],
             color='Publications',
             color_continuous_scale='Turbo',
             zoom=zoom_level,
@@ -596,17 +616,19 @@ elif view_mode == "Carte":
         # Logique d'affichage des détails après clic
         if event and hasattr(event, 'selection') and len(event.selection.points) > 0:
             selected_point = event.selection.points[0]
-            # Mapbox points handles custom_data slightly differently
-            selected_inst_name = selected_point.get('hovertext', selected_point.get('customdata', [""])[0])
+            # On récupère la liste des institutions packagées dans le point
+            raw_insts = selected_point.get('customdata', [""])[0]
+            selected_inst_names = raw_insts.split(' | ')
             
-            # Récupérer les données réelles pour cette institution
-            relevant_inst_stats = inst_stats[inst_stats['Institution'] == selected_inst_name].iloc[0]
-            pub_count = relevant_inst_stats['Publications']
+            pub_count = selected_point.get('customdata', [0, 0])[1]
             
-            st.write(f"### 🏫 {selected_inst_name} ({pub_count} publications)")
+            label_title = selected_inst_names[0] + (f" (+ {len(selected_inst_names)-1} autres)" if len(selected_inst_names) > 1 else "")
+            st.write(f"### 📍 {label_title}")
+            if len(selected_inst_names) > 1:
+                st.info(f"Ce point regroupe : {', '.join(selected_inst_names)}")
             
-            # Filtrer les DOIs à partir de map_df qui contient les données éclatées
-            inst_dois = map_df[map_df['institution'] == selected_inst_name]['doi'].unique()
+            # Filtrer les DOIs pour TOUTES les institutions du cluster
+            inst_dois = map_df[map_df['institution'].isin(selected_inst_names)]['doi'].unique()
             relevant_df = display_df[display_df['doi'].isin(inst_dois)]
             
             c1, c2 = st.columns(2)
