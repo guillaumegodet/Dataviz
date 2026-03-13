@@ -429,7 +429,7 @@ if view_mode == "Dataviz":
     st.write("---")
     st.write("### 👥 Auteurs Nantais")
     # Compter les publications uniques (par DOI) par auteurs nantais dans les données filtrées
-    nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author')['doi'].nunique().reset_index()
+    nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().reset_index()
     nantes_authors_stats.columns = ['Auteur', 'Publications']
     nantes_authors_stats = nantes_authors_stats.sort_values('Publications', ascending=False)
     
@@ -486,7 +486,7 @@ elif view_mode == "Institutions":
     if selected_country != "Tous les pays":
         partner_inst_df = partner_inst_df[partner_inst_df['country'] == selected_country]
     
-    inst_stats = partner_inst_df.groupby('institution')['doi'].nunique().reset_index()
+    inst_stats = partner_inst_df.groupby('institution', observed=True)['doi'].nunique().reset_index()
     inst_stats.columns = ['Institution', 'Publications']
     inst_stats = inst_stats.sort_values('Publications', ascending=False)
     
@@ -518,7 +518,7 @@ elif view_mode == "Institutions":
             c1, c2 = st.columns(2)
             with c1:
                 st.write("**👤 Chercheurs nantais impliqués :**")
-                nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
+                nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
                 nantes_researchers_stats.columns = ['author', 'count']
                 
                 display_list = []
@@ -668,7 +668,7 @@ elif view_mode == "Carte":
                     c1, c2 = st.columns(2)
                     with c1:
                         st.write("**👤 Chercheurs nantais impliqués :**")
-                        nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
+                        nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
                         nantes_researchers_stats.columns = ['author', 'count']
                         
                         display_list = []
