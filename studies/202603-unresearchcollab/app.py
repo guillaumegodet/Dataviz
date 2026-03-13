@@ -8,7 +8,7 @@ st.set_page_config(page_title="Dashboard Coopération Nantes Université", layou
 
 # Dictionnaire des unités de recherche nantaises (ID OpenAlex -> libellé)
 NANTES_MAP = {
-    "i100445878": "Centrale Nantes",
+    "I100445878": "Centrale Nantes",
     "I4387152714": "CAPHI",
     "I4387153064": "CFV",
     "I4387153012": "CReAAH",
@@ -339,7 +339,7 @@ if selected_unit != "Toutes les unités":
     unit_id = NANTES_LABEL_TO_ID[selected_unit]
     unit_dois = filtered_df[
         (filtered_df['is_nantes'] == True) &
-        (filtered_df['inst_id'].str.contains(unit_id, na=False, regex=False))
+        (filtered_df['inst_id'].str.contains(unit_id, na=False, regex=False, case=False))
     ]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(unit_dois)]
 
@@ -438,9 +438,9 @@ elif view_mode == "Institutions":
         display_df[display_df['is_nantes'] == False][['doi', 'institution', 'country']],
         ['institution', 'country']
     )
-    # On nettoie et on filtre
+    # On nettoie et on filtre (on ne garde que l'étranger, Nantes est la référence)
     partner_inst_df = partner_inst_df[partner_inst_df['institution'] != ""]
-    partner_inst_df = partner_inst_df[(partner_inst_df['country'] != "FR") & (partner_inst_df['country'] != "nan")]
+    partner_inst_df = partner_inst_df[(partner_inst_df['country'] != "FR") & (partner_inst_df['country'] != "nan") & (partner_inst_df['country'] != "")]
     
     if selected_country != "Tous les pays":
         partner_inst_df = partner_inst_df[partner_inst_df['country'] == selected_country]
@@ -516,13 +516,12 @@ elif view_mode == "Carte":
     # 1. Extraction et formatage des données géographiques
     df_copy = display_df[display_df['is_nantes'] == False].copy()
     
-    # Eclater les colonnes parallèles
-    # On utilise la fonction globale explode_parallel_cols
     map_df = explode_parallel_cols(
         df_copy[['doi', 'institution', 'lat', 'lon', 'country']].rename(columns={'country': 'country_code'}),
         ['institution', 'lat', 'lon', 'country_code']
     )
-    map_df = map_df[(map_df['institution'] != '') & (map_df['lat'] != '') & (map_df['lon'] != '')]
+    # On ne garde que les partenaires étrangers sur la carte
+    map_df = map_df[(map_df['institution'] != '') & (map_df['lat'] != '') & (map_df['lon'] != '') & (map_df['country_code'] != 'FR')]
     
     # Filtrer par pays si sélectionné
     if selected_country != "Tous les pays":

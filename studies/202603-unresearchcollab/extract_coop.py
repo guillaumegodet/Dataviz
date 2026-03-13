@@ -9,7 +9,7 @@ config.api_key = "XZ4HqnJboSxbP7oERU2PBm"
 # Dictionnaire des IDs OpenAlex avec leurs libellés
 NANTES_MAP = {
     "I97188460": "Nantes Université",
-    "i100445878": "Centrale Nantes",
+    "I100445878": "Centrale Nantes",
     "I4387152714": "CAPHI",
     "I4387153064": "CFV",
     "I4387153012": "CReAAH",
@@ -117,16 +117,21 @@ def get_cooperations():
                     country = inst.get('country_code')
                     inst_name = inst.get('display_name')
                     
-                    # On cherche si c'est une institution nantaise et on récupère son libellé
-                    is_nantes = inst_id in NANTES_MAP
-                    if is_nantes:
-                        inst_name = NANTES_MAP[inst_id]
-                        any_is_nantes = True
+                    # On cherche si c'est une institution nantaise (insensible à la casse)
+                    is_nantes = inst_id.upper() in [k.upper() for k in NANTES_MAP.keys()]
                     
-                    institutions.append(inst_name if inst_name else "")
-                    inst_ids.append(inst_id)
-                    rors.append(inst.get('ror') if inst.get('ror') else "")
-                    countries.append(country if country else "")
+                    # CRITÈRE DE CONSERVATION : Nantes OU Étranger
+                    if is_nantes or (country and country != 'FR'):
+                        if is_nantes:
+                            # Récupérer la clé correcte (insensible à la casse)
+                            real_key = next(k for k in NANTES_MAP.keys() if k.upper() == inst_id.upper())
+                            inst_name = NANTES_MAP[real_key]
+                            any_is_nantes = True
+                        
+                        institutions.append(inst_name if inst_name else "")
+                        inst_ids.append(inst_id)
+                        rors.append(inst.get('ror') if inst.get('ror') else "")
+                        countries.append(country if country else "")
 
                 # On n'ajoute l'auteur que s'il a au moins une institution
                 if institutions:
