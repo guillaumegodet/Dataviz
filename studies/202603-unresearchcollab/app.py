@@ -564,10 +564,13 @@ elif view_mode == "Institutions":
                 nantes_labs_df = relevant_df[relevant_df['is_nantes'] == True].copy()
                 nantes_labs_df = nantes_labs_df.assign(lab=nantes_labs_df['institution'].str.split('|')).explode('lab')
                 nantes_labs_df['lab'] = nantes_labs_df['lab'].str.strip()
-                lab_stats = nantes_labs_df[nantes_labs_df['lab'] != ""].groupby('lab', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
+                
+                # Filtrer pour ne garder QUE les labos officiels de la liste NANTES_MAP
+                official_labs = set(NANTES_MAP.values())
+                lab_stats = nantes_labs_df[nantes_labs_df['lab'].isin(official_labs)].groupby('lab', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
                 lab_stats.columns = ['lab', 'count']
                 lab_list = [f"{r['lab']} ({r['count']})" for _, r in lab_stats[lab_stats['count'] > 0].iterrows()]
-                st.write(", ".join(lab_list))
+                st.write(", ".join(lab_list) if lab_list else "_Aucun labo officiel identifié_")
                 
             with c2:
                 render_domains_topics(relevant_df)
@@ -720,10 +723,13 @@ elif view_mode == "Carte":
                         nantes_labs_df = relevant_df[relevant_df['is_nantes'] == True].copy()
                         nantes_labs_df = nantes_labs_df.assign(lab=nantes_labs_df['institution'].str.split('|')).explode('lab')
                         nantes_labs_df['lab'] = nantes_labs_df['lab'].str.strip()
-                        lab_stats = nantes_labs_df[nantes_labs_df['lab'] != ""].groupby('lab', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
+                        
+                        # Filtrer pour ne garder QUE les labos officiels de la liste NANTES_MAP
+                        official_labs = set(NANTES_MAP.values())
+                        lab_stats = nantes_labs_df[nantes_labs_df['lab'].isin(official_labs)].groupby('lab', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
                         lab_stats.columns = ['lab', 'count']
                         lab_list = [f"{r['lab']} ({r['count']})" for _, r in lab_stats[lab_stats['count'] > 0].iterrows()]
-                        st.write(", ".join(lab_list))
+                        st.write(", ".join(lab_list) if lab_list else "_Aucun labo officiel identifié_")
                         
                     with c2:
                         render_domains_topics(relevant_df)
