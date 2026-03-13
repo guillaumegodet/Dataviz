@@ -35,16 +35,26 @@ df = load_data()
 
 # --- SIDEBAR : FILTRES ---
 st.sidebar.header("📅 Période")
+
+# Récupération de la période depuis l'URL
+url_years = st.query_params.get("years", "2020-2025")
+try:
+    y_min, y_max = map(int, url_years.split("-"))
+    default_years = (max(2020, y_min), min(2025, y_max))
+except:
+    default_years = (2020, 2025)
+
 year_range = st.sidebar.slider(
     "Sélectionner la plage d'années :",
     min_value=2020,
     max_value=2025,
-    value=(2020, 2025) # Valeur par défaut
+    value=default_years
 )
+st.query_params["years"] = f"{year_range[0]}-{year_range[1]}"
 
 # On initialise working_df avec les données de base (ou filtrées par auteur si déjà sélectionné)
 if 'selected_author' not in st.session_state:
-    st.session_state.selected_author = "Tous les auteurs"
+    st.session_state.selected_author = st.query_params.get("author", "Tous les auteurs")
 
 if st.session_state.selected_author != "Tous les auteurs":
     author_dois = df[df['author'] == st.session_state.selected_author]['doi'].unique()
@@ -58,11 +68,17 @@ st.sidebar.header("🌍 Filtre Géographique")
 all_countries_series = working_df['country'].str.split('|').explode().str.strip()
 available_countries = sorted(all_countries_series[all_countries_series != 'FR'].dropna().unique())
 
+country_options = ["Tous les pays"] + available_countries
+url_country = st.query_params.get("country", "Tous les pays")
+country_idx = country_options.index(url_country) if url_country in country_options else 0
+
 selected_country = st.sidebar.selectbox(
     "Choisir un pays partenaire :", 
-    ["Tous les pays"] + available_countries,
+    country_options,
+    index=country_idx,
     format_func=lambda x: get_country_name(x) if x != "Tous les pays" else x
 )
+st.query_params["country"] = selected_country
 
 # Sous-filtre établissement (uniquement si pays choisi)
 selected_inst = "Tous les établissements"
@@ -70,13 +86,21 @@ if selected_country != "Tous les pays":
     country_mask = working_df['country'].str.contains(selected_country, na=False)
     all_insts = working_df[country_mask]['institution'].str.split('|').explode().str.strip()
     available_insts = sorted(all_insts.dropna().unique())
-    selected_inst = st.sidebar.selectbox("Choisir un établissement :", ["Tous les établissements"] + available_insts)
+    inst_options = ["Tous les établissements"] + available_insts
+url_inst = st.query_params.get("inst", "Tous les établissements")
+inst_idx = inst_options.index(url_inst) if url_inst in inst_options else 0
+selected_inst = st.sidebar.selectbox("Choisir un établissement :", inst_options, index=inst_idx)
+st.query_params["inst"] = selected_inst
 
 # --- FILTRE DOMAINE (Subfields) ---
 st.sidebar.header("🎓 Domaine de recherche")
 all_subfields_series = working_df['subfields'].str.split('|').explode().str.strip()
 available_subfields = sorted(all_subfields_series.dropna().unique())
-selected_subfield = st.sidebar.selectbox("Choisir un domaine :", ["Tous les domaines"] + available_subfields)
+subfield_options = ["Tous les domaines"] + available_subfields
+url_subfield = st.query_params.get("subfield", "Tous les domaines")
+subfield_idx = subfield_options.index(url_subfield) if url_subfield in subfield_options else 0
+selected_subfield = st.sidebar.selectbox("Choisir un domaine :", subfield_options, index=subfield_idx)
+st.query_params["subfield"] = selected_subfield
 
 # --- FILTRE SUJET (Topics) ---
 st.sidebar.header("🔬 Sujet de recherche")
@@ -87,16 +111,28 @@ if selected_subfield != "Tous les domaines":
 
 all_topics_series = temp_df['topics'].str.split('|').explode().str.strip()
 available_topics = sorted(all_topics_series.dropna().unique())
-selected_topic = st.sidebar.selectbox("Choisir un sujet :", ["Tous les sujets"] + available_topics)
+topic_options = ["Tous les sujets"] + available_topics
+url_topic = st.query_params.get("topic", "Tous les sujets")
+topic_idx = topic_options.index(url_topic) if url_topic in topic_options else 0
+selected_topic = st.sidebar.selectbox("Choisir un sujet :", topic_options, index=topic_idx)
+st.query_params["topic"] = selected_topic
 
 # --- RECHERCHE PAR CHERCHEUR (Déplacé en bas) ---
 st.sidebar.header("👤 Chercheur Nantais")
 nantes_authors_list = sorted(df[df['is_nantes'] == True]['author'].unique())
+author_options = ["Tous les auteurs"] + nantes_authors_list
+if st.session_state.selected_author not in author_options:
+    st.session_state.selected_author = "Tous les auteurs"
+
 selected_author = st.sidebar.selectbox(
     "Filtrer par auteur nantais :",
-    ["Tous les auteurs"] + nantes_authors_list,
+    author_options,
     key="selected_author"
 )
+st.query_params["author"] = selected_author
+
+st.sidebar.markdown("---")
+st.sidebar.info("🔗 L'URL de votre navigateur contient vos filtres actuels. Copiez-la pour partager cette vue.")
 
 # --- LOGIQUE DE FILTRAGE FINAL ---
 filtered_df = working_df.copy()
@@ -201,11 +237,17 @@ with col1:
         st.plotly_chart(fig_top, width="stretch")
 
 with col2:
+    view_options = ["Par Publications", "Par Universités partenaires", "Par Carte"]
+    url_mode = st.query_params.get("mode", "Par Publications")
+    mode_idx = view_options.index(url_mode) if url_mode in view_options else 0
+
     view_mode = st.radio(
         "Mode d'affichage :",
-        options=["Par Publications", "Par Universités partenaires", "Par Carte"],
+        options=view_options,
+        index=mode_idx,
         horizontal=True
     )
+    st.query_params["mode"] = view_mode
     
     st.write("---")
 
