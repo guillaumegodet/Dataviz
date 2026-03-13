@@ -554,15 +554,20 @@ elif view_mode == "Institutions":
             c1, c2 = st.columns(2)
             with c1:
                 st.write("**👤 Chercheurs nantais impliqués :**")
-                nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
-                nantes_researchers_stats.columns = ['author', 'count']
-                nantes_researchers_stats = nantes_researchers_stats[nantes_researchers_stats['count'] > 0]
+                nantes_res_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
+                nantes_res_stats.columns = ['author', 'count']
+                nantes_res_stats = nantes_res_stats[nantes_res_stats['count'] > 0]
+                res_list = [f"{r['author']} ({r['count']})" for _, r in nantes_res_stats.head(15).iterrows()]
+                st.write(", ".join(res_list) + ("..." if len(nantes_res_stats) > 15 else ""))
                 
-                display_list = []
-                for _, res_row in nantes_researchers_stats.head(15).iterrows():
-                    display_list.append(f"{res_row['author']} ({res_row['count']})")
-                
-                st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
+                st.write("**🏢 Labos nantais impliqués :**")
+                nantes_labs_df = relevant_df[relevant_df['is_nantes'] == True].copy()
+                nantes_labs_df = nantes_labs_df.assign(lab=nantes_labs_df['institution'].str.split('|')).explode('lab')
+                nantes_labs_df['lab'] = nantes_labs_df['lab'].str.strip()
+                lab_stats = nantes_labs_df[nantes_labs_df['lab'] != ""].groupby('lab', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
+                lab_stats.columns = ['lab', 'count']
+                lab_list = [f"{r['lab']} ({r['count']})" for _, r in lab_stats[lab_stats['count'] > 0].iterrows()]
+                st.write(", ".join(lab_list))
                 
             with c2:
                 render_domains_topics(relevant_df)
@@ -705,15 +710,20 @@ elif view_mode == "Carte":
                     c1, c2 = st.columns(2)
                     with c1:
                         st.write("**👤 Chercheurs nantais impliqués :**")
-                        nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
-                        nantes_researchers_stats.columns = ['author', 'count']
-                        nantes_researchers_stats = nantes_researchers_stats[nantes_researchers_stats['count'] > 0]
+                        nantes_res_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
+                        nantes_res_stats.columns = ['author', 'count']
+                        nantes_res_stats = nantes_res_stats[nantes_res_stats['count'] > 0]
+                        res_list = [f"{r['author']} ({r['count']})" for _, r in nantes_res_stats.head(15).iterrows()]
+                        st.write(", ".join(res_list) + ("..." if len(nantes_res_stats) > 15 else ""))
                         
-                        display_list = []
-                        for _, res_row in nantes_researchers_stats.head(15).iterrows():
-                            display_list.append(f"{res_row['author']} ({res_row['count']})")
-                        
-                        st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
+                        st.write("**🏢 Labos nantais impliqués :**")
+                        nantes_labs_df = relevant_df[relevant_df['is_nantes'] == True].copy()
+                        nantes_labs_df = nantes_labs_df.assign(lab=nantes_labs_df['institution'].str.split('|')).explode('lab')
+                        nantes_labs_df['lab'] = nantes_labs_df['lab'].str.strip()
+                        lab_stats = nantes_labs_df[nantes_labs_df['lab'] != ""].groupby('lab', observed=True)['doi'].nunique().sort_values(ascending=False).reset_index()
+                        lab_stats.columns = ['lab', 'count']
+                        lab_list = [f"{r['lab']} ({r['count']})" for _, r in lab_stats[lab_stats['count'] > 0].iterrows()]
+                        st.write(", ".join(lab_list))
                         
                     with c2:
                         render_domains_topics(relevant_df)
