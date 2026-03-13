@@ -251,7 +251,11 @@ if selected_country != "Tous les pays":
         ['institution', 'country']
     )
     available_insts = sorted(temp_inst_df[temp_inst_df['country'] == selected_country]['institution'].unique())
-    selected_inst = st.sidebar.selectbox("Choisir un établissement :", ["Tous les établissements"] + available_insts)
+    inst_options = ["Tous les établissements"] + available_insts
+    url_inst = st.query_params.get("inst", "Tous les établissements")
+    inst_idx = inst_options.index(url_inst) if url_inst in inst_options else 0
+    selected_inst = st.sidebar.selectbox("Choisir un établissement :", inst_options, index=inst_idx)
+    st.query_params["inst"] = selected_inst
 
 # --- FILTRES THÉMATIQUES HIÉRARCHIQUES ---
 st.sidebar.header("🎯 Filtres Thématiques")
@@ -271,7 +275,11 @@ if selected_domain != "Tous les domaines":
     temp_df_fields = working_df[working_df['domains'].str.contains(selected_domain, na=False, regex=False)]
 all_fields = sorted(temp_df_fields['fields'].str.split('|').explode().str.strip().dropna().unique())
 if 'nan' in all_fields: all_fields.remove('nan')
-selected_field = st.sidebar.selectbox("Filtre par discipline :", ["Toutes les disciplines"] + all_fields)
+field_options = ["Toutes les disciplines"] + all_fields
+url_field = st.query_params.get("field", "Toutes les disciplines")
+field_idx = field_options.index(url_field) if url_field in field_options else 0
+selected_field = st.sidebar.selectbox("Filtre par discipline :", field_options, index=field_idx)
+st.query_params["field"] = selected_field
 
 # 3. Sous-disciplines (Subfields) - Cascade
 temp_df_subfields = temp_df_fields
@@ -279,7 +287,11 @@ if selected_field != "Toutes les disciplines":
     temp_df_subfields = temp_df_fields[temp_df_fields['fields'].str.contains(selected_field, na=False, regex=False)]
 all_subfields = sorted(temp_df_subfields['subfields'].str.split('|').explode().str.strip().dropna().unique())
 if 'nan' in all_subfields: all_subfields.remove('nan')
-selected_subfield = st.sidebar.selectbox("Filtre par sous-discipline :", ["Toutes les sous-disciplines"] + all_subfields)
+subfield_options = ["Toutes les sous-disciplines"] + all_subfields
+url_subfield = st.query_params.get("subfield", "Toutes les sous-disciplines")
+subfield_idx = subfield_options.index(url_subfield) if url_subfield in subfield_options else 0
+selected_subfield = st.sidebar.selectbox("Filtre par sous-discipline :", subfield_options, index=subfield_idx)
+st.query_params["subfield"] = selected_subfield
 
 # 4. Sujets (Topics) - Cascade
 temp_df_topics = temp_df_subfields
@@ -287,7 +299,11 @@ if selected_subfield != "Toutes les sous-disciplines":
     temp_df_topics = temp_df_subfields[temp_df_subfields['subfields'].str.contains(selected_subfield, na=False, regex=False)]
 all_topics = sorted(temp_df_topics['topics'].str.split('|').explode().str.strip().dropna().unique())
 if 'nan' in all_topics: all_topics.remove('nan')
-selected_topic = st.sidebar.selectbox("Filtre par sujet :", ["Tous les sujets"] + all_topics)
+topic_options = ["Tous les sujets"] + all_topics
+url_topic = st.query_params.get("topic", "Tous les sujets")
+topic_idx = topic_options.index(url_topic) if url_topic in topic_options else 0
+selected_topic = st.sidebar.selectbox("Filtre par sujet :", topic_options, index=topic_idx)
+st.query_params["topic"] = selected_topic
 
 # --- FILTRE UNITÉ DE RECHERCHE ---
 st.sidebar.header("🏢 Unité de recherche")
@@ -330,8 +346,17 @@ author_limit_options = {
     "≤ 100 auteurs": 100,
     "≤ 1000 auteurs": 1000
 }
-selected_limit_label = st.sidebar.selectbox("Filtrer par nombre d'auteurs :", list(author_limit_options.keys()), index=0)
+limit_options = list(author_limit_options.keys())
+url_limit = st.query_params.get("limit", "Tous les effectifs")
+limit_idx = limit_options.index(url_limit) if url_limit in limit_options else 0
+
+selected_limit_label = st.sidebar.selectbox(
+    "Filtrer par nombre d'auteurs :", 
+    limit_options, 
+    index=limit_idx
+)
 selected_limit_val = author_limit_options[selected_limit_label]
+st.query_params["limit"] = selected_limit_label
 
 # --- LOGIQUE DE FILTRAGE FINAL ---
 filtered_df = working_df.copy()
