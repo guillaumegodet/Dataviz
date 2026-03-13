@@ -5,6 +5,7 @@ from tqdm import tqdm
 import os
 
 config.email = "guillaume.godet@univ-nantes.fr"
+config.api_key = "XZ4HqnJboSxbP7oERU2PBm"
 
 print("Loading dataset...")
 df = pd.read_parquet("cooperations_nantesu.parquet")
@@ -34,7 +35,11 @@ for chunk in tqdm(chunks):
             id_val = res['id'].replace("https://openalex.org/", "")
             geo = res.get('geo', {})
             if geo and geo.get('latitude') and geo.get('longitude'):
-                coord_map[id_val] = {'lat': geo['latitude'], 'lon': geo['longitude']}
+                coord_map[id_val] = {
+                    'lat': geo['latitude'], 
+                    'lon': geo['longitude'],
+                    'city': geo.get('city', '')
+                }
     except Exception as e:
         print(f"Error fetching chunk: {e}")
         time.sleep(2)
@@ -42,18 +47,19 @@ for chunk in tqdm(chunks):
 print(f"Fetched coordinates for {len(coord_map)} institutions.")
 
 # Create the new columns
-def get_lat_lon(ids, key):
+def get_coord_info(ids, key):
     res = []
     for inst_id in str(ids).split('|'):
         if inst_id in coord_map:
-            res.append(str(coord_map[inst_id][key]))
+            res.append(str(coord_map[inst_id].get(key, "")))
         else:
             res.append("")
     return "|".join(res)
 
 print("Updating dataframe...")
-df['lat'] = df['inst_id'].apply(lambda x: get_lat_lon(x, 'lat'))
-df['lon'] = df['inst_id'].apply(lambda x: get_lat_lon(x, 'lon'))
+df['lat'] = df['inst_id'].apply(lambda x: get_coord_info(x, 'lat'))
+df['lon'] = df['inst_id'].apply(lambda x: get_coord_info(x, 'lon'))
+df['city'] = df['inst_id'].apply(lambda x: get_coord_info(x, 'city'))
 
 df.to_parquet("cooperations_nantesu.parquet", index=False)
 df.to_csv("cooperations_nantesu.csv", index=False)

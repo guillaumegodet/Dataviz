@@ -64,7 +64,26 @@ def get_country_name(code):
     except:
         return code
 
-def render_publication(doi, work_data, selected_author=""):
+def explode_parallel_cols(df, cols, id_col='doi'):
+    """Explose des colonnes séparées par '|' en s'assurant qu'elles restent alignées."""
+    if df.empty:
+        return pd.DataFrame(columns=[id_col] + cols)
+    split = {c: df[c].fillna('').astype(str).str.split('|') for c in cols}
+    # Calculer le nombre d'éléments pour chaque ligne (doit être identique pour toutes les colonnes de la ligne)
+    max_len = pd.concat([s.apply(len) for s in split.values()], axis=1).max(axis=1)
+    
+    rows = []
+    for idx in df.index:
+        n = max_len[idx]
+        parts = {c: (split[c][idx] + [''] * n)[:n] for c in cols}
+        for i in range(n):
+            row_data = {id_col: df.at[idx, id_col]}
+            for c in cols:
+                row_data[c] = parts[c][i].strip()
+            rows.append(row_data)
+    return pd.DataFrame(rows)
+
+def render_publication(doi, work_data, selected_author="", selected_country="Tous les pays"):
     """Affiche une publication sous forme d'expander avec équipe Nantes, partenaires et métadonnées."""
     title = work_data['title'].iloc[0] if not pd.isna(work_data['title'].iloc[0]) else "Sans titre"
     year = work_data['year'].iloc[0]
@@ -80,67 +99,79 @@ def render_publication(doi, work_data, selected_author=""):
                 st.write(f"👤 {style}  \n*{inst_label}*")
         with c2:
             st.write("**Partenaires Internationaux :**")
-            f_auths = work_data[work_data['country'].str.contains(r'^(?!FR$)', regex=True, na=False)]
+            # On récupère tous les auteurs qui ne sont pas de Nantes
+            f_auths = work_data[work_data['is_nantes'] == False]
+            
+            partners_to_show = []
             for _, r in f_auths.iterrows():
-                other_countries = [get_country_name(c) for c in str(r['country']).split('|') if c != 'FR']
-                countries_label = ", ".join(other_countries)
-                inst_label = r['institution'].replace('|', ' / ')
-                st.write(f"🌎 {r['author']}  \n*{inst_label}* ({countries_label})")
+                insts = str(r['institution']).split('|')
+                cntrs = str(r['country']).split('|')
+                
+                for i, c in zip(insts, cntrs):
+                    c_clean = c.strip()
+                    if c_clean == 'FR' or c_clean == '' or c_clean == 'nan':
+                        continue
+                    if selected_country != "Tous les pays" and c_clean != selected_country:
+                        continue
+                    partners_to_show.append({
+                        'author': r['author'],
+                        'institution': i.strip(),
+                        'country': c_clean
+                    })
+            
+            if not partners_to_show:
+                st.write("_Aucun partenaire correspondant aux filtres_")
+            else:
+                for p in partners_to_show:
+                    country_label = get_country_name(p['country'])
+                    st.write(f"🌎 {p['author']}  \n*{p['institution']}* ({country_label})")
 
-        if ('subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0])) or \
-           ('topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0])):
+        levels = [
+            ('domains', "🎓 Domaines"),
+            ('fields', "📚 Disciplines"),
+            ('subfields', "🧪 Sous-disciplines"),
+            ('topics', "🔬 Sujets")
+        ]
+        
+        has_any = any(col in work_data.columns and not pd.isna(work_data[col].iloc[0]) and work_data[col].iloc[0] != "" for col, _ in levels)
+        if has_any:
             st.write("---")
-            if 'subfields' in work_data.columns and not pd.isna(work_data['subfields'].iloc[0]):
-                subfields_list = work_data['subfields'].iloc[0].split('|')
-                st.write("🎓 **Domaines de recherche :**")
-                st.write(", ".join(subfields_list))
-            if 'topics' in work_data.columns and not pd.isna(work_data['topics'].iloc[0]):
-                topics_list = work_data['topics'].iloc[0].split('|')
-                st.write("🔬 **Sujets de recherche :**")
-                st.write(", ".join(topics_list))
+            for col, label in levels:
+                if col in work_data.columns and not pd.isna(work_data[col].iloc[0]) and work_data[col].iloc[0] != "":
+                    vals = work_data[col].iloc[0].split('|')
+                    st.write(f"**{label} :** {', '.join(vals)}")
 
         openalex_id = work_data['work_id'].iloc[0]
+        authors_count = work_data['authors_count'].iloc[0] if 'authors_count' in work_data.columns else "N/A"
         doi_display = doi if doi else "N/A"
         doi_link = f"[{doi_display}]({doi_display})" if doi else "N/A"
-        st.caption(f"**DOI:** {doi_link} | **OpenAlex:** [{openalex_id}](https://openalex.org/works/{openalex_id})")
+        st.caption(f"**DOI:** {doi_link} | **OpenAlex:** [{openalex_id}](https://openalex.org/works/{openalex_id}) | **👥 Auteurs:** {authors_count}")
 
 def render_domains_topics(relevant_df, max_items=10):
-    """Affiche les domaines et sujets triés par fréquence décroissante avec le nombre de publications."""
-    # Domaines : compter par DOI unique pour avoir des publications (pas des lignes auteurs)
-    paper_subfields = relevant_df[['doi', 'subfields']].drop_duplicates()
-    sf_exploded = paper_subfields.assign(
-        subfields=paper_subfields['subfields'].str.split('|')
-    ).explode('subfields')
-    sf_exploded['subfields'] = sf_exploded['subfields'].str.strip()
-    sf_exploded = sf_exploded[sf_exploded['subfields'] != ""]
-    sf_counts = sf_exploded.groupby('subfields')['doi'].nunique().sort_values(ascending=False)
+    """Affiche les 4 niveaux OpenAlex triés par fréquence."""
+    levels = [
+        ('domains', "🎓 Domaines"),
+        ('fields', "📚 Disciplines"),
+        ('subfields', "🧪 Sous-disciplines"),
+        ('topics', "🔬 Sujets")
+    ]
+    
+    for col, label in levels:
+        paper_data = relevant_df[['doi', col]].drop_duplicates()
+        exploded = paper_data.assign(
+            val=paper_data[col].str.split('|')
+        ).explode('val')
+        exploded['val'] = exploded['val'].str.strip()
+        counts = exploded[exploded['val'] != ""].groupby('val')['doi'].nunique().sort_values(ascending=False)
+        
+        st.write(f"**{label} :**")
+        if counts.empty:
+            st.write(f"_Aucune donnée_")
+        else:
+            items = [f"{name} ({count})" for name, count in counts.head(max_items).items()]
+            more = f" _+ {len(counts) - max_items} autres_" if len(counts) > max_items else ""
+            st.write(", ".join(items) + more)
 
-    st.write("**🎓 Domaines de recherche :**")
-    if sf_counts.empty:
-        st.write("_Aucun domaine renseigné_")
-    else:
-        items = [f"{name} ({count})"
-                 for name, count in sf_counts.head(max_items).items()]
-        more = f" _+ {len(sf_counts) - max_items} autres_" if len(sf_counts) > max_items else ""
-        st.write(", ".join(items) + more)
-
-    # Sujets
-    paper_topics = relevant_df[['doi', 'topics']].drop_duplicates()
-    tp_exploded = paper_topics.assign(
-        topics=paper_topics['topics'].str.split('|')
-    ).explode('topics')
-    tp_exploded['topics'] = tp_exploded['topics'].str.strip()
-    tp_exploded = tp_exploded[tp_exploded['topics'] != ""]
-    tp_counts = tp_exploded.groupby('topics')['doi'].nunique().sort_values(ascending=False)
-
-    st.write("**🔬 Sujets de recherche :**")
-    if tp_counts.empty:
-        st.write("_Aucun sujet renseigné_")
-    else:
-        items = [f"{name} ({count})"
-                 for name, count in tp_counts.head(max_items).items()]
-        more = f" _+ {len(tp_counts) - max_items} autres_" if len(tp_counts) > max_items else ""
-        st.write(", ".join(items) + more)
 
 @st.cache_data
 def load_data():
@@ -150,11 +181,10 @@ def load_data():
     # On s'assure que les noms sont bien formatés pour la recherche
     df['author'] = df['author'].fillna("Inconnu")
     
-    # Sécurité : si le cache Streamlit est ancien et n'a pas les colonnes topics ou subfields
-    if 'topics' not in df.columns:
-        df['topics'] = ""
-    if 'subfields' not in df.columns:
-        df['subfields'] = ""
+    # Sécurité : si le cache Streamlit est ancien et n'a pas les nouvelles colonnes
+    for col in ['topics', 'subfields', 'fields', 'domains', 'city', 'authors_count']:
+        if col not in df.columns:
+            df[col] = 0 if col == 'authors_count' else ""
         
     return df
 
@@ -169,21 +199,22 @@ year_range = st.sidebar.slider(
     value=(2020, 2025) # Valeur par défaut
 )
 
+# On filtre par année immédiatement pour alléger la suite
+working_df = df[(df['year'] >= year_range[0]) & (df['year'] <= year_range[1])]
+
 # On initialise working_df avec les données de base (ou filtrées par auteur si déjà sélectionné)
 if 'selected_author' not in st.session_state:
     st.session_state.selected_author = "Tous les auteurs"
 
 if st.session_state.selected_author != "Tous les auteurs":
-    author_dois = df[df['author'] == st.session_state.selected_author]['doi'].unique()
-    working_df = df[df['doi'].isin(author_dois)]
-else:
-    working_df = df
+    author_dois = working_df[working_df['author'] == st.session_state.selected_author]['doi'].unique()
+    working_df = working_df[working_df['doi'].isin(author_dois)]
 
 # --- FILTRE PAYS (Dynamique selon l'auteur choisi) ---
 st.sidebar.header("🌍 Filtre Géographique")
 # On "explose" les pays pour avoir une liste propre d'individus
 all_countries_series = working_df['country'].str.split('|').explode().str.strip()
-available_countries = sorted(all_countries_series[all_countries_series != 'FR'].dropna().unique())
+available_countries = sorted(all_countries_series[(all_countries_series != 'FR') & (all_countries_series != 'nan')].dropna().unique())
 
 selected_country = st.sidebar.selectbox(
     "Choisir un pays partenaire :", 
@@ -194,27 +225,45 @@ selected_country = st.sidebar.selectbox(
 # Sous-filtre établissement (uniquement si pays choisi)
 selected_inst = "Tous les établissements"
 if selected_country != "Tous les pays":
-    country_mask = working_df['country'].str.contains(selected_country, na=False)
-    all_insts = working_df[country_mask]['institution'].str.split('|').explode().str.strip()
-    available_insts = sorted(all_insts.dropna().unique())
+    # On n'affiche que les institutions du pays sélectionné
+    temp_inst_df = explode_parallel_cols(
+        working_df[working_df['country'].str.contains(selected_country, na=False)][['doi', 'institution', 'country']],
+        ['institution', 'country']
+    )
+    available_insts = sorted(temp_inst_df[temp_inst_df['country'] == selected_country]['institution'].unique())
     selected_inst = st.sidebar.selectbox("Choisir un établissement :", ["Tous les établissements"] + available_insts)
 
-# --- FILTRE DOMAINE (Subfields) ---
-st.sidebar.header("🎓 Domaine de recherche")
-all_subfields_series = working_df['subfields'].str.split('|').explode().str.strip()
-available_subfields = sorted(all_subfields_series.dropna().unique())
-selected_subfield = st.sidebar.selectbox("Choisir un domaine :", ["Tous les domaines"] + available_subfields)
+# --- FILTRES THÉMATIQUES HIÉRARCHIQUES ---
+st.sidebar.header("🎯 Filtres Thématiques")
 
-# --- FILTRE SUJET (Topics) ---
-st.sidebar.header("🔬 Sujet de recherche")
-# Filtrer les thèmes disponibles selon le domaine choisi pour plus de pertinence
-temp_df = working_df
-if selected_subfield != "Tous les domaines":
-    temp_df = working_df[working_df['subfields'].str.contains(selected_subfield, na=False, regex=False)]
+# 1. Domaines
+all_domains = sorted(working_df['domains'].str.split('|').explode().str.strip().dropna().unique())
+if 'nan' in all_domains: all_domains.remove('nan')
+selected_domain = st.sidebar.selectbox("Filtre par domaine :", ["Tous les domaines"] + all_domains)
 
-all_topics_series = temp_df['topics'].str.split('|').explode().str.strip()
-available_topics = sorted(all_topics_series.dropna().unique())
-selected_topic = st.sidebar.selectbox("Choisir un sujet :", ["Tous les sujets"] + available_topics)
+# 2. Disciplines (Fields) - Cascade
+temp_df_fields = working_df
+if selected_domain != "Tous les domaines":
+    temp_df_fields = working_df[working_df['domains'].str.contains(selected_domain, na=False, regex=False)]
+all_fields = sorted(temp_df_fields['fields'].str.split('|').explode().str.strip().dropna().unique())
+if 'nan' in all_fields: all_fields.remove('nan')
+selected_field = st.sidebar.selectbox("Filtre par discipline :", ["Toutes les disciplines"] + all_fields)
+
+# 3. Sous-disciplines (Subfields) - Cascade
+temp_df_subfields = temp_df_fields
+if selected_field != "Toutes les disciplines":
+    temp_df_subfields = temp_df_fields[temp_df_fields['fields'].str.contains(selected_field, na=False, regex=False)]
+all_subfields = sorted(temp_df_subfields['subfields'].str.split('|').explode().str.strip().dropna().unique())
+if 'nan' in all_subfields: all_subfields.remove('nan')
+selected_subfield = st.sidebar.selectbox("Filtre par sous-discipline :", ["Toutes les sous-disciplines"] + all_subfields)
+
+# 4. Sujets (Topics) - Cascade
+temp_df_topics = temp_df_subfields
+if selected_subfield != "Toutes les sous-disciplines":
+    temp_df_topics = temp_df_subfields[temp_df_subfields['subfields'].str.contains(selected_subfield, na=False, regex=False)]
+all_topics = sorted(temp_df_topics['topics'].str.split('|').explode().str.strip().dropna().unique())
+if 'nan' in all_topics: all_topics.remove('nan')
+selected_topic = st.sidebar.selectbox("Filtre par sujet :", ["Tous les sujets"] + all_topics)
 
 # --- FILTRE UNITÉ DE RECHERCHE ---
 st.sidebar.header("🏢 Unité de recherche")
@@ -237,12 +286,29 @@ selected_author = st.sidebar.selectbox(
     key="selected_author"
 )
 
+# --- FILTRE NOMBRE D'AUTEURS ---
+st.sidebar.header("👥 Taille de l'équipe")
+author_limit_options = {
+    "Tous les effectifs": 1000000,
+    "≤ 10 auteurs": 10,
+    "≤ 50 auteurs": 50,
+    "≤ 100 auteurs": 100,
+    "≤ 1000 auteurs": 1000
+}
+selected_limit_label = st.sidebar.selectbox("Filtrer par nombre d'auteurs :", list(author_limit_options.keys()), index=0)
+selected_limit_val = author_limit_options[selected_limit_label]
+
 # --- LOGIQUE DE FILTRAGE FINAL ---
 filtered_df = working_df.copy()
 
 # Filtre par année
 filtered_df = filtered_df[(filtered_df['year'] >= year_range[0]) & (filtered_df['year'] <= year_range[1])]
 
+# Filtre par nombre d'auteurs
+if selected_limit_val < 1000000:
+    filtered_df = filtered_df[filtered_df['authors_count'] <= selected_limit_val]
+
+# Filtre par pays
 if selected_country != "Tous les pays":
     c_dois = filtered_df[filtered_df['country'].str.contains(selected_country, na=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(c_dois)]
@@ -251,7 +317,16 @@ if selected_inst != "Tous les établissements":
     i_dois = filtered_df[filtered_df['institution'].str.contains(selected_inst, na=False, regex=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(i_dois)]
 
-if selected_subfield != "Tous les domaines":
+# Filtres thématiques
+if selected_domain != "Tous les domaines":
+    d_dois = filtered_df[filtered_df['domains'].str.contains(selected_domain, na=False, regex=False)]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(d_dois)]
+
+if selected_field != "Toutes les disciplines":
+    f_dois = filtered_df[filtered_df['fields'].str.contains(selected_field, na=False, regex=False)]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(f_dois)]
+
+if selected_subfield != "Toutes les sous-disciplines":
     s_dois = filtered_df[filtered_df['subfields'].str.contains(selected_subfield, na=False, regex=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(s_dois)]
 
@@ -276,13 +351,19 @@ st.title(f"Collaborations : "
          f" ({year_range[0]}-{year_range[1]})")
 
 st.markdown("""
-Ce tableau de bord présente les publications scientifiques co-signées par des membres de **Nantes Université** avec des partenaires internationaux. 
+Ce tableau de bord présente les publications scientifiques co-signées par des membres de **Nantes Université** avec des partenaires internationaux.   
 💡 **Conseil :** Utilisez les filtres dans le menu à gauche pour explorer par chercheur ou par zone géographique.
 """)
 
-col1, col2 = st.columns([1, 2])
+view_mode = st.radio(
+    "Mode d'affichage :",
+    options=["Institutions", "Carte", "Dataviz"],
+    horizontal=True
+)
 
-with col1:
+st.write("---")
+
+if view_mode == "Dataviz":
     st.write("### 🚩 Pays partenaires")
     # On s'assure de ne compter chaque pays qu'une seule fois par publication
     # 1. On récupère les couples (DOI, liste de pays) uniques
@@ -292,8 +373,9 @@ with col1:
     exploded_countries['country'] = exploded_countries['country'].str.strip()
     unique_paper_country = exploded_countries.drop_duplicates()
     
-    # 3. On compte et on exclut la France
-    stats_countries = unique_paper_country[unique_paper_country['country'] != 'FR']['country'].value_counts().reset_index()
+    # 3. On compte et on exclut la France et les valeurs vides
+    valid_countries = unique_paper_country[(unique_paper_country['country'] != 'FR') & (unique_paper_country['country'] != '') & (unique_paper_country['country'] != 'nan')]
+    stats_countries = valid_countries['country'].value_counts().reset_index()
     stats_countries.columns = ['country_code', 'count']
     stats_countries['country_name'] = stats_countries['country_code'].apply(get_country_name)
     
@@ -349,231 +431,213 @@ with col1:
         fig_top = px.bar(stats_topics.head(10), y='Sujet', x='Publications', orientation='h', color='Publications', color_continuous_scale='Reds')
         fig_top.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
         st.plotly_chart(fig_top, width="stretch")
-
-with col2:
-    view_mode = st.radio(
-        "Mode d'affichage :",
-        options=["Par Publications", "Par Universités partenaires", "Par Carte"],
-        horizontal=True
+elif view_mode == "Institutions":
+    # Mode : Universités partenaires
+    # On utilise explode_parallel_cols pour avoir une liste propre d'institutions et leurs pays
+    partner_inst_df = explode_parallel_cols(
+        display_df[display_df['is_nantes'] == False][['doi', 'institution', 'country']],
+        ['institution', 'country']
     )
+    # On nettoie et on filtre
+    partner_inst_df = partner_inst_df[partner_inst_df['institution'] != ""]
+    partner_inst_df = partner_inst_df[(partner_inst_df['country'] != "FR") & (partner_inst_df['country'] != "nan")]
     
-    st.write("---")
-
-    if view_mode == "Par Publications":
-        dois = display_df['doi'].dropna().unique()
-        total_items = len(dois)
-        ITEMS_PER_PAGE = 20
-        total_pages = (total_items - 1) // ITEMS_PER_PAGE + 1 if total_items > 0 else 0
+    if selected_country != "Tous les pays":
+        partner_inst_df = partner_inst_df[partner_inst_df['country'] == selected_country]
     
-        st.write(f"### 📄 Publications ({total_items})")
-        
-        if total_pages > 1:
-            # On utilise une colonne pour centrer le sélecteur de page ou le mettre discrètement
-            page_col1, page_col2 = st.columns([1, 1])
-            with page_col1:
-                current_page = st.number_input(f"Page (sur {total_pages})", min_value=1, max_value=total_pages, step=1, value=1)
-            
-            start_idx = (current_page - 1) * ITEMS_PER_PAGE
-            end_idx = start_idx + ITEMS_PER_PAGE
-            dois_to_show = dois[start_idx:end_idx]
-        else:
-            dois_to_show = dois
+    inst_stats = partner_inst_df.groupby('institution')['doi'].nunique().reset_index()
+    inst_stats.columns = ['Institution', 'Publications']
+    inst_stats = inst_stats.sort_values('Publications', ascending=False)
     
-        for doi in dois_to_show:
-            work_data = display_df[display_df['doi'] == doi]
-            if work_data.empty:
-                continue
-            render_publication(doi, work_data, selected_author)
+    total_insts = len(inst_stats)
+    st.write(f"### 🏫 Institutions ({total_insts})")
+    
+    ITEMS_PER_PAGE = 20
+    total_pages = (total_insts - 1) // ITEMS_PER_PAGE + 1 if total_insts > 0 else 0
+    
+    if total_pages > 1:
+        page_col1, page_col2 = st.columns([1, 1])
+        with page_col1:
+            current_page = st.number_input(f"Page (sur {total_pages})", min_value=1, max_value=total_pages, step=1, value=1, key='inst_page')
+        
+        start_idx = (current_page - 1) * ITEMS_PER_PAGE
+        end_idx = start_idx + ITEMS_PER_PAGE
+        insts_to_show = inst_stats.iloc[start_idx:end_idx]
+    else:
+        insts_to_show = inst_stats
 
-    elif view_mode == "Par Universités partenaires":
-        # Mode : Universités partenaires
-        partner_inst_df = display_df[display_df['is_nantes'] == False][['doi', 'institution']].copy()
-        partner_inst_df['institution'] = partner_inst_df['institution'].fillna("")
-        partner_inst_df = partner_inst_df.assign(institution=partner_inst_df['institution'].str.split('|')).explode('institution')
-        partner_inst_df['institution'] = partner_inst_df['institution'].str.strip()
-        partner_inst_df = partner_inst_df[partner_inst_df['institution'] != ""]
+    for inst_idx, (_, row) in enumerate(insts_to_show.iterrows()):
+        inst_name = row['Institution']
+        pub_count = row['Publications']
         
-        inst_stats = partner_inst_df.groupby('institution')['doi'].nunique().reset_index()
-        inst_stats.columns = ['Institution', 'Publications']
-        inst_stats = inst_stats.sort_values('Publications', ascending=False)
-        
-        total_insts = len(inst_stats)
-        st.write(f"### 🏫 Universités partenaires ({total_insts})")
-        
-        ITEMS_PER_PAGE = 20
-        total_pages = (total_insts - 1) // ITEMS_PER_PAGE + 1 if total_insts > 0 else 0
-        
-        if total_pages > 1:
-            page_col1, page_col2 = st.columns([1, 1])
-            with page_col1:
-                current_page = st.number_input(f"Page (sur {total_pages})", min_value=1, max_value=total_pages, step=1, value=1, key='inst_page')
+        with st.expander(f"🏫 {inst_name} ({pub_count} publications)"):
+            inst_dois = partner_inst_df[partner_inst_df['institution'] == inst_name]['doi'].unique()
+            relevant_df = display_df[display_df['doi'].isin(inst_dois)]
             
-            start_idx = (current_page - 1) * ITEMS_PER_PAGE
-            end_idx = start_idx + ITEMS_PER_PAGE
-            insts_to_show = inst_stats.iloc[start_idx:end_idx]
-        else:
-            insts_to_show = inst_stats
-
-        for inst_idx, (_, row) in enumerate(insts_to_show.iterrows()):
-            inst_name = row['Institution']
-            pub_count = row['Publications']
-            
-            with st.expander(f"🏫 {inst_name} ({pub_count} publications)"):
-                inst_dois = partner_inst_df[partner_inst_df['institution'] == inst_name]['doi'].unique()
-                relevant_df = display_df[display_df['doi'].isin(inst_dois)]
+            c1, c2 = st.columns(2)
+            with c1:
+                st.write("**👤 Chercheurs nantais impliqués :**")
+                nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
+                nantes_researchers_stats.columns = ['author', 'count']
                 
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.write("**👤 Chercheurs nantais impliqués :**")
-                    nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
-                    nantes_researchers_stats.columns = ['author', 'count']
-                    
-                    display_list = []
-                    for _, res_row in nantes_researchers_stats.head(15).iterrows():
-                        display_list.append(f"{res_row['author']} ({res_row['count']})")
-                    
-                    st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
-                    
-                with c2:
-                    render_domains_topics(relevant_df)
+                display_list = []
+                for _, res_row in nantes_researchers_stats.head(15).iterrows():
+                    display_list.append(f"{res_row['author']} ({res_row['count']})")
                 
-                st.write("---")
-                st.write("**📄 Publications associées :**")
-                sorted_dois = relevant_df[['doi', 'year']].drop_duplicates().sort_values('year', ascending=False)['doi'].values
-                total_pubs = len(sorted_dois)
-                PUB_PAGE_SIZE = 10
-                total_pub_pages = max(1, (total_pubs - 1) // PUB_PAGE_SIZE + 1)
-                if total_pub_pages > 1:
-                    pub_page = st.number_input(
-                        f"Page publications (sur {total_pub_pages}, {total_pubs} total)",
-                        min_value=1, max_value=total_pub_pages, step=1, value=1,
-                        key=f"pub_page_inst_{inst_idx}"
-                    )
-                    dois_slice = sorted_dois[(pub_page-1)*PUB_PAGE_SIZE : pub_page*PUB_PAGE_SIZE]
-                else:
-                    dois_slice = sorted_dois
-                for pub_doi in dois_slice:
-                    pub_data = relevant_df[relevant_df['doi'] == pub_doi]
-                    if not pub_data.empty:
-                        render_publication(pub_doi, pub_data, selected_author)
-
-    elif view_mode == "Par Carte":
-        st.write("### 🗺️ Carte des Universités")
-        st.markdown("Cliquez sur une université sur la carte ci-dessous pour filtrer et afficher les détails en-dessous.")
-        
-        # 1. Extraction et formatage des données géographiques
-        df_copy = display_df[display_df['is_nantes'] == False].copy()
-        
-        # Eclater les colonnes parallèles
-        # Construction vectorisée de map_df (bien plus rapide que iterrows)
-        def explode_parallel_cols(df, cols):
-            """Explose des colonnes séparées par '|' en s'assurant qu'elles restent alignées."""
-            split = {c: df[c].fillna('').str.split('|') for c in cols}
-            max_len = pd.concat([s.apply(len) for s in split.values()], axis=1).max(axis=1)
-            rows = []
-            for idx in df.index:
-                n = max_len[idx]
-                parts = {c: (split[c][idx] + [''] * n)[:n] for c in cols}
-                for i in range(n):
-                    rows.append({'doi': df.at[idx, 'doi'], **{c: parts[c][i].strip() for c in cols}})
-            return pd.DataFrame(rows)
-
-        map_df = explode_parallel_cols(
-            df_copy[['doi', 'institution', 'lat', 'lon', 'country']].rename(columns={'country': 'country_code'}),
-            ['institution', 'lat', 'lon', 'country_code']
-        )
-        map_df = map_df[(map_df['institution'] != '') & (map_df['lat'] != '') & (map_df['lon'] != '')]
-        
-        if map_df.empty:
-            st.info("Aucune donnée géographique disponible pour cette sélection.")
-        else:
-            # Agréger par institution
-            inst_stats = map_df.groupby(['institution', 'lat', 'lon', 'country_code'])['doi'].nunique().reset_index()
-            inst_stats.columns = ['Institution', 'lat', 'lon', 'country_code', 'Publications']
-            
-            inst_stats['lat'] = pd.to_numeric(inst_stats['lat'], errors='coerce')
-            inst_stats['lon'] = pd.to_numeric(inst_stats['lon'], errors='coerce')
-            inst_stats = inst_stats.dropna(subset=['lat', 'lon'])
-            inst_stats['Pays'] = inst_stats['country_code'].apply(get_country_name)
-            
-            # Génération de la carte via Plotly Express
-            fig_map = px.scatter_geo(
-                inst_stats,
-                lat='lat',
-                lon='lon',
-                size='Publications',
-                size_max=30,
-                hover_name='Institution',
-                custom_data=['Institution', 'Publications', 'Pays'],
-                color='Publications',
-                color_continuous_scale='Turbo',
-                projection="natural earth"
-            )
-            # Améliorer le tooltip
-            fig_map.update_traces(
-                hovertemplate="<b>%{customdata[0]}</b><br>Pays: %{customdata[2]}<br>Publications: %{customdata[1]}<extra></extra>"
-            )
-            fig_map.update_layout(
-                margin={"r":0,"t":0,"l":0,"b":0},
-                geo=dict(showcoastlines=True, coastlinecolor="LightBlue", showland=True, landcolor="WhiteSmoke", showocean=True, oceancolor="AliceBlue")
-            )
-            
-            # Utilisation de on_select pour rendre la carte cliquable (disponible depuis Streamlit 1.35)
-            try:
-                event = st.plotly_chart(fig_map, width="stretch", on_select="rerun", selection_mode=("points"))
-            except Exception:
-                # Fallback pour les anciennes versions de Streamlit
-                st.plotly_chart(fig_map, width="stretch")
-                event = None
-                st.warning("La sélection sur carte n'est pas supportée par votre version de Streamlit.")
+                st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
+                
+            with c2:
+                render_domains_topics(relevant_df)
             
             st.write("---")
+            st.write("**📄 Publications associées :**")
+            sorted_dois = relevant_df[['doi', 'year']].drop_duplicates().sort_values('year', ascending=False)['doi'].values
+            total_pubs = len(sorted_dois)
+            PUB_PAGE_SIZE = 10
+            total_pub_pages = max(1, (total_pubs - 1) // PUB_PAGE_SIZE + 1)
+            if total_pub_pages > 1:
+                pub_page = st.number_input(
+                    f"Page publications (sur {total_pub_pages}, {total_pubs} total)",
+                    min_value=1, max_value=total_pub_pages, step=1, value=1,
+                    key=f"pub_page_inst_{inst_idx}"
+                )
+                dois_slice = sorted_dois[(pub_page-1)*PUB_PAGE_SIZE : pub_page*PUB_PAGE_SIZE]
+            else:
+                dois_slice = sorted_dois
+            for pub_doi in dois_slice:
+                pub_data = relevant_df[relevant_df['doi'] == pub_doi]
+                if not pub_data.empty:
+                    render_publication(pub_doi, pub_data, selected_author, selected_country)
+
+elif view_mode == "Carte":
+    st.write("### 🗺️ Carte des collaborations")
+    st.markdown("Cliquez sur une université sur la carte ci-dessous pour filtrer et afficher les détails en-dessous.")
+    
+    # 1. Extraction et formatage des données géographiques
+    df_copy = display_df[display_df['is_nantes'] == False].copy()
+    
+    # Eclater les colonnes parallèles
+    # On utilise la fonction globale explode_parallel_cols
+    map_df = explode_parallel_cols(
+        df_copy[['doi', 'institution', 'lat', 'lon', 'country']].rename(columns={'country': 'country_code'}),
+        ['institution', 'lat', 'lon', 'country_code']
+    )
+    map_df = map_df[(map_df['institution'] != '') & (map_df['lat'] != '') & (map_df['lon'] != '')]
+    
+    # Filtrer par pays si sélectionné
+    if selected_country != "Tous les pays":
+        map_df = map_df[map_df['country_code'] == selected_country]
+
+    if map_df.empty:
+        st.info("Aucune donnée géographique disponible pour cette sélection.")
+    else:
+        # Agréger par institution
+        inst_stats = map_df.groupby(['institution', 'lat', 'lon', 'country_code'])['doi'].nunique().reset_index()
+        inst_stats.columns = ['Institution', 'lat', 'lon', 'country_code', 'Publications']
+        
+        inst_stats['lat'] = pd.to_numeric(inst_stats['lat'], errors='coerce')
+        inst_stats['lon'] = pd.to_numeric(inst_stats['lon'], errors='coerce')
+        inst_stats = inst_stats.dropna(subset=['lat', 'lon'])
+        inst_stats['Pays'] = inst_stats['country_code'].apply(get_country_name)
+        
+        # Calcul du centre et du zoom
+        if selected_country != "Tous les pays" and not inst_stats.empty:
+            center_lat = inst_stats['lat'].mean()
+            center_lon = inst_stats['lon'].mean()
             
-            # Logique d'affichage des détails après clic
-            if event and len(event.selection.points) > 0:
-                # Les points sont retournés sous forme de dictionnaires dans les versions récentes
-                selected_point = event.selection.points[0]
-                selected_inst_name = selected_point['customdata'][0]
-                pub_count = selected_point['customdata'][1]
+            lat_range = inst_stats['lat'].max() - inst_stats['lat'].min()
+            lon_range = inst_stats['lon'].max() - inst_stats['lon'].min()
+            max_range = max(lat_range, lon_range)
+            
+            if max_range < 0.1: zoom_level = 9
+            elif max_range < 1: zoom_level = 7
+            elif max_range < 5: zoom_level = 5
+            elif max_range < 15: zoom_level = 3.5
+            else: zoom_level = 2.5
+        else:
+            center_lat, center_lon, zoom_level = 20, 0, 0.5
+
+        # Génération de la carte via Plotly Express Mapbox
+        fig_map = px.scatter_mapbox(
+            inst_stats,
+            lat='lat',
+            lon='lon',
+            size='Publications',
+            size_max=30,
+            hover_name='Institution',
+            hover_data={'lat': False, 'lon': False, 'country_code': False, 'Pays': True, 'Publications': True},
+            custom_data=['Institution', 'Publications', 'Pays'],
+            color='Publications',
+            color_continuous_scale='Turbo',
+            zoom=zoom_level,
+            center=dict(lat=center_lat, lon=center_lon),
+            mapbox_style="open-street-map"
+        )
+        
+        fig_map.update_layout(
+            margin={"r":0,"t":0,"l":0,"b":0},
+            height=600,
+            showlegend=False
+        )
+        
+        # Utilisation de on_select pour rendre la carte cliquable
+        try:
+            event = st.plotly_chart(fig_map, width="stretch", on_select="rerun", selection_mode=("points"), config={'scrollZoom': True})
+        except Exception:
+            st.plotly_chart(fig_map, width="stretch", config={'scrollZoom': True})
+            event = None
+            st.warning("La sélection sur carte n'est pas supportée par votre version de Streamlit.")
+        
+        st.write("---")
+        
+        # Logique d'affichage des détails après clic
+        if event and hasattr(event, 'selection') and len(event.selection.points) > 0:
+            selected_point = event.selection.points[0]
+            # Mapbox points handles custom_data slightly differently
+            selected_inst_name = selected_point.get('hovertext', selected_point.get('customdata', [""])[0])
+            
+            # Récupérer les données réelles pour cette institution
+            relevant_inst_stats = inst_stats[inst_stats['Institution'] == selected_inst_name].iloc[0]
+            pub_count = relevant_inst_stats['Publications']
+            
+            st.write(f"### 🏫 {selected_inst_name} ({pub_count} publications)")
+            
+            # Filtrer les DOIs à partir de map_df qui contient les données éclatées
+            inst_dois = map_df[map_df['institution'] == selected_inst_name]['doi'].unique()
+            relevant_df = display_df[display_df['doi'].isin(inst_dois)]
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                st.write("**👤 Chercheurs nantais impliqués :**")
+                nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
+                nantes_researchers_stats.columns = ['author', 'count']
                 
-                st.write(f"### 🏫 {selected_inst_name} ({pub_count} publications)")
+                display_list = []
+                for _, res_row in nantes_researchers_stats.head(15).iterrows():
+                    display_list.append(f"{res_row['author']} ({res_row['count']})")
                 
-                inst_dois = map_df[map_df['institution'] == selected_inst_name]['doi'].unique()
-                relevant_df = display_df[display_df['doi'].isin(inst_dois)]
+                st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
                 
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.write("**👤 Chercheurs nantais impliqués :**")
-                    nantes_researchers_stats = relevant_df[relevant_df['is_nantes'] == True].groupby('author')['doi'].nunique().sort_values(ascending=False).reset_index()
-                    nantes_researchers_stats.columns = ['author', 'count']
-                    
-                    display_list = []
-                    for _, res_row in nantes_researchers_stats.head(15).iterrows():
-                        display_list.append(f"{res_row['author']} ({res_row['count']})")
-                    
-                    st.write(", ".join(display_list) + ("..." if len(nantes_researchers_stats) > 15 else ""))
-                    
-                with c2:
-                    render_domains_topics(relevant_df)
-                
-                st.write("**📄 Publications associées :**")
-                sorted_dois = relevant_df[['doi', 'year']].drop_duplicates().sort_values('year', ascending=False)['doi'].values
-                total_pubs = len(sorted_dois)
-                PUB_PAGE_SIZE = 10
-                total_pub_pages = max(1, (total_pubs - 1) // PUB_PAGE_SIZE + 1)
-                if total_pub_pages > 1:
-                    pub_page = st.number_input(
-                        f"Page publications (sur {total_pub_pages}, {total_pubs} total)",
-                        min_value=1, max_value=total_pub_pages, step=1, value=1,
-                        key="pub_page_carte"
-                    )
-                    dois_slice = sorted_dois[(pub_page-1)*PUB_PAGE_SIZE : pub_page*PUB_PAGE_SIZE]
-                else:
-                    dois_slice = sorted_dois
-                for pub_doi in dois_slice:
-                    pub_data = relevant_df[relevant_df['doi'] == pub_doi]
-                    if not pub_data.empty:
-                        render_publication(pub_doi, pub_data, selected_author)
-                    
+            with c2:
+                render_domains_topics(relevant_df)
+            
+            st.write("**📄 Publications associées :**")
+            sorted_dois = relevant_df[['doi', 'year']].drop_duplicates().sort_values('year', ascending=False)['doi'].values
+            total_pubs = len(sorted_dois)
+            PUB_PAGE_SIZE = 10
+            total_pub_pages = max(1, (total_pubs - 1) // PUB_PAGE_SIZE + 1)
+            if total_pub_pages > 1:
+                pub_page = st.number_input(
+                    f"Page publications (sur {total_pub_pages}, {total_pubs} total)",
+                    min_value=1, max_value=total_pub_pages, step=1, value=1,
+                    key="pub_page_carte"
+                )
+                dois_slice = sorted_dois[(pub_page-1)*PUB_PAGE_SIZE : pub_page*PUB_PAGE_SIZE]
+            else:
+                dois_slice = sorted_dois
+            for pub_doi in dois_slice:
+                pub_data = relevant_df[relevant_df['doi'] == pub_doi]
+                if not pub_data.empty:
+                    render_publication(pub_doi, pub_data, selected_author, selected_country)
             else:
                 st.info("👆 Cliquez sur une bulle de la carte pour afficher les détails des partenariats avec cette université.")

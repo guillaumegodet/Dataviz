@@ -4,6 +4,7 @@ from tqdm import tqdm
 
 # Configuration (Optionnel: ajoute ton mail pour le "polite pool" d'OpenAlex)
 config.email = "guillaume.godet@univ-nantes.fr"
+config.api_key = "XZ4HqnJboSxbP7oERU2PBm"
 
 # Dictionnaire des IDs OpenAlex avec leurs libellés
 NANTES_MAP = {
@@ -59,27 +60,43 @@ def get_cooperations():
         Works()
         .filter(institutions={"id": "I97188460"})
         .filter(from_publication_date="2020-01-01", to_publication_date="2025-12-31")
+        .filter(countries_distinct_count=">1")
     )
     
     results = []
+    cursor = "*"
+    pbar = None
     
-    # Parcours des résultats (OpenAlex pagine par 25 ou 200)
-    for page in tqdm(query.paginate(per_page=200), desc="Récupération OpenAlex"):
+    while cursor:
+        page = query.get(per_page=200, cursor=cursor)
+        meta = page.meta
+        
+        if pbar is None:
+            pbar = tqdm(total=meta['count'], desc="Récupération OpenAlex")
+        
         for work in page:
             work_id = work['id']
             title = work['display_name']
             year = work['publication_year']
-            # Extraire les thèmes (topics) et domaines (subfields)
+            # Extraire les thèmes (topics), sous-domaines (subfields), domaines (fields) et grands domaines (domains)
             topics = []
             subfields = []
+            fields = []
+            domains = []
             for t in work.get('topics', []):
                 if t.get('display_name'):
                     topics.append(t.get('display_name'))
                 if t.get('subfield', {}).get('display_name'):
                     subfields.append(t.get('subfield').get('display_name'))
+                if t.get('field', {}).get('display_name'):
+                    fields.append(t.get('field').get('display_name'))
+                if t.get('domain', {}).get('display_name'):
+                    domains.append(t.get('domain').get('display_name'))
             
-            topics_str = "|".join(filter(None, topics))
-            subfields_str = "|".join(dict.fromkeys(filter(None, subfields))) # dict.fromkeys pour dédoublonner les domaines
+            topics_str = "|".join(dict.fromkeys(filter(None, topics)))
+            subfields_str = "|".join(dict.fromkeys(filter(None, subfields)))
+            fields_str = "|".join(dict.fromkeys(filter(None, fields)))
+            domains_str = "|".join(dict.fromkeys(filter(None, domains)))
             
             # Analyser les auteurs et affiliations
             for auth in work.get('authorships', []):
@@ -92,7 +109,11 @@ def get_cooperations():
                 any_is_nantes = False
 
                 for inst in auth.get('institutions', []):
-                    inst_id = inst['id'].replace("https://openalex.org/", "")
+                    inst_id_full = inst.get('id')
+                    if not inst_id_full:
+                        continue
+                    
+                    inst_id = inst_id_full.replace("https://openalex.org/", "")
                     country = inst.get('country_code')
                     inst_name = inst.get('display_name')
                     
@@ -121,8 +142,17 @@ def get_cooperations():
                         "country": "|".join(dict.fromkeys(filter(None, countries))),
                         "topics": topics_str,
                         "subfields": subfields_str,
+                        "fields": fields_str,
+                        "domains": domains_str,
+                        "authors_count": work.get('authors_count', 0),
                         "is_nantes": any_is_nantes
                     })
+            pbar.update(1)
+        
+        cursor = meta.get('next_cursor')
+
+    if pbar:
+        pbar.close()
 
     return pd.DataFrame(results)
 
