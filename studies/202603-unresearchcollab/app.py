@@ -214,12 +214,16 @@ if st.session_state.selected_author != "Tous les auteurs":
 st.sidebar.header("🌍 Filtre Géographique")
 # On "explose" les pays pour avoir une liste propre d'individus
 all_countries_series = working_df['country'].str.split('|').explode().str.strip()
-available_countries = sorted(all_countries_series[(all_countries_series != 'FR') & (all_countries_series != 'nan')].dropna().unique())
+valid_countries = all_countries_series[(all_countries_series != 'FR') & (all_countries_series != 'nan') & (all_countries_series != '')].dropna()
+
+# On trie les pays par nombre de publications décroissant
+country_counts = valid_countries.value_counts()
+available_countries = list(country_counts.index)
 
 selected_country = st.sidebar.selectbox(
     "Choisir un pays partenaire :", 
     ["Tous les pays"] + available_countries,
-    format_func=lambda x: get_country_name(x) if x != "Tous les pays" else x
+    format_func=lambda x: f"{get_country_name(x)} ({country_counts[x]})" if x != "Tous les pays" else x
 )
 
 # Sous-filtre établissement (uniquement si pays choisi)
