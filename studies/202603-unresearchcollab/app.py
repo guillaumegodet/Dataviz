@@ -339,8 +339,7 @@ selected_author = st.sidebar.selectbox(
 )
 st.query_params["author"] = selected_author
 
-st.sidebar.markdown("---")
-st.sidebar.info("🔗 L'URL de votre navigateur contient vos filtres actuels. Copiez-la pour partager cette vue.")
+
 
 # --- FILTRE NOMBRE D'AUTEURS ---
 st.sidebar.header("👥 Taille de l'équipe")
@@ -362,6 +361,9 @@ selected_limit_label = st.sidebar.selectbox(
 )
 selected_limit_val = author_limit_options[selected_limit_label]
 st.query_params["limit"] = selected_limit_label
+
+st.sidebar.markdown("---")
+st.sidebar.info("🔗 L'URL de votre navigateur contient vos filtres actuels. Copiez-la pour partager cette vue.")
 
 # --- LOGIQUE DE FILTRAGE FINAL ---
 filtered_df = working_df.copy()
