@@ -8,7 +8,6 @@ st.set_page_config(page_title="Dashboard Coopération Nantes Université", layou
 
 # Dictionnaire des unités de recherche nantaises (ID OpenAlex -> libellé)
 NANTES_MAP = {
-    "I100445878": "Centrale Nantes",
     "I4387152714": "CAPHI",
     "I4387153064": "CFV",
     "I4387153012": "CReAAH",
@@ -52,6 +51,12 @@ NANTES_MAP = {
     "I4210153154": "LHEEA",
     "I4210162214": "AAU",
 }
+# Établissements nantais
+COMPONENTS_MAP = {
+    "Centrale Nantes": "I100445878",
+    "Nantes Université": "I97188460"
+}
+
 # Mapping inverse : libellé -> ID
 NANTES_LABEL_TO_ID = {v: k for k, v in NANTES_MAP.items()}
 
@@ -318,6 +323,14 @@ topic_idx = topic_options.index(url_topic) if url_topic in topic_options else 0
 selected_topic = st.sidebar.selectbox("Filtre par sujet :", topic_options, index=topic_idx)
 st.query_params["topic"] = selected_topic
 
+# --- FILTRE ÉTABLISSEMENT ---
+st.sidebar.header("🏫 Établissement Nantais")
+comp_options = ["Tous les établissements"] + list(COMPONENTS_MAP.keys())
+url_comp = st.query_params.get("comp", "Tous les établissements")
+comp_idx = comp_options.index(url_comp) if url_comp in comp_options else 0
+selected_comp = st.sidebar.selectbox("Choisir l'établissement :", comp_options, index=comp_idx)
+st.query_params["comp"] = selected_comp
+
 # --- FILTRE UNITÉ DE RECHERCHE ---
 st.sidebar.header("🏢 Structure Nantaise")
 
@@ -430,6 +443,15 @@ if selected_topic != "Tous les sujets":
     t_dois = filtered_df[filtered_df['topics'].str.contains(selected_topic, na=False, regex=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(t_dois)]
 
+# Filtre par établissement
+if selected_comp != "Tous les établissements":
+    comp_id = COMPONENTS_MAP[selected_comp]
+    comp_dois = filtered_df[
+        (filtered_df['is_nantes'] == True) &
+        (filtered_df['inst_id'].str.contains(comp_id, na=False, regex=False))
+    ]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(comp_dois)]
+
 # Filtre structure nantaise (Pôle / Unité)
 if selected_unit != "Toutes les unités":
     unit_id = NANTES_LABEL_TO_ID[selected_unit]
@@ -452,7 +474,7 @@ display_df = filtered_df
 
 # --- AFFICHAGE DES RÉSULTATS ---
 st.title(f"Collaborations : "
-         f"{selected_author if selected_author != 'Tous les auteurs' else selected_unit if selected_unit != 'Toutes les unités' else selected_pole if selected_pole != 'Tous les pôles' else 'Nantes Université'}"
+         f"{selected_author if selected_author != 'Tous les auteurs' else selected_unit if selected_unit != 'Toutes les unités' else selected_pole if selected_pole != 'Tous les pôles' else selected_comp if selected_comp != 'Tous les établissements' else 'Nantes Université'}"
          f" ({year_range[0]}-{year_range[1]})")
 
 st.markdown("""
