@@ -751,37 +751,43 @@ elif view_mode == "Carte":
     if map_df.empty:
         st.info("Aucune donnée géographique disponible pour cette sélection.")
     else:
-        # Agréger par POSITION (Clustering par coordonnées)
-        inst_stats = map_df.groupby(['lat', 'lon', 'country_code']).agg({
-            'doi': 'nunique',
-            'institution': lambda x: " | ".join(sorted(x.unique()))
+        # 1. Aggrégation par institution (on ne regroupe plus tout sur un seul point pour voir les différents badges)
+        inst_stats = map_df.groupby(['institution', 'lat', 'lon', 'country_code']).agg({
+            'doi': 'nunique'
         }).reset_index()
         
-        inst_stats.columns = ['lat', 'lon', 'country_code', 'Publications', 'All_Institutions']
-        
+        inst_stats.columns = ['institution', 'lat', 'lon', 'country_code', 'Publications']
         inst_stats['lat'] = pd.to_numeric(inst_stats['lat'], errors='coerce')
         inst_stats['lon'] = pd.to_numeric(inst_stats['lon'], errors='coerce')
         inst_stats = inst_stats.dropna(subset=['lat', 'lon'])
         inst_stats['Pays'] = inst_stats['country_code'].apply(get_country_name)
 
-        # Créer un libellé lisible pour la carte
-        def make_label(row):
-            insts = row['All_Institutions'].split(' | ')
-            if len(insts) > 1:
-                return f"{insts[0]} (+ {len(insts)-1} autres)"
-            return insts[0]
+        # 2. Gestion des superpositions (Jitter)
+        # Si plusieurs badges sont au même endroit, on les décale légèrement pour qu'ils soient tous visibles
+        inst_stats['pos_id'] = inst_stats['lat'].astype(str) + inst_stats['lon'].astype(str)
+        counts = inst_stats.groupby('pos_id').cumcount()
+        # On applique un léger décalage radial/aléatoire pour les doublons
+        import numpy as np
+        mask = counts > 0
+        inst_stats.loc[mask, 'lat'] += np.sin(counts[mask]) * 0.005
+        inst_stats.loc[mask, 'lon'] += np.cos(counts[mask]) * 0.005
+
+        # Préparation des labels pour le clic et le survol
+        inst_stats['Institution_Label'] = inst_stats['institution']
         
-        inst_stats['Institution_Label'] = inst_stats.apply(make_label, axis=1)
-        
-        # Calcul du centre et du zoom
+        # Renommage pour le tooltip
+        inst_stats = inst_stats.rename(columns={
+            'Pays': ' ', 
+            'Publications': 'publications en commun avec Nantes U'
+        })
+
+        # 2b. Calcul du centre et du zoom (restauré)
         if selected_country != "Tous les pays" and not inst_stats.empty:
             center_lat = inst_stats['lat'].mean()
             center_lon = inst_stats['lon'].mean()
-            
             lat_range = inst_stats['lat'].max() - inst_stats['lat'].min()
             lon_range = inst_stats['lon'].max() - inst_stats['lon'].min()
             max_range = max(lat_range, lon_range)
-            
             if max_range < 0.1: zoom_level = 9
             elif max_range < 1: zoom_level = 7
             elif max_range < 5: zoom_level = 5
@@ -789,35 +795,27 @@ elif view_mode == "Carte":
             else: zoom_level = 2.5
         else:
             center_lat, center_lon, zoom_level = 20, 0, 0.5
-
-        # Préparation des données pour le survol (tooltip)
-        # On renomme temporairement les colonnes pour que l'affichage soit propre
-        inst_stats = inst_stats.rename(columns={
-            'Pays': ' ', 
-            'Publications': 'publications en commun avec Nantes U'
-        })
         
-        # Génération de la carte via Plotly Express Mapbox
+        # 3. Génération de la carte avec badges (Markers + Text)
         fig_map = px.scatter_mapbox(
             inst_stats,
             lat='lat',
             lon='lon',
-            size='publications en commun avec Nantes U',
-            size_max=30,
             hover_name='Institution_Label',
-            custom_data=['All_Institutions', ' ', 'publications en commun avec Nantes U'],
-            color='publications en commun avec Nantes U',
-            color_continuous_scale='Turbo',
+            text='publications en commun avec Nantes U',
+            custom_data=['institution', ' ', 'publications en commun avec Nantes U'],
+            color_discrete_sequence=['#004d5b'], # Couleur teal sombre comme sur la capture
             zoom=zoom_level,
             center=dict(lat=center_lat, lon=center_lon),
             mapbox_style="open-street-map"
         )
         
-        # Définition d'un template de survol propre (hover_template)
-        # customdata[0] = All_Institutions (utilisé pour le clic)
-        # customdata[1] = Pays (nom de colonne ' ')
-        # customdata[2] = Nombre de publications
+        # Configuration des badges (texte au centre du cercle)
         fig_map.update_traces(
+            mode='markers+text',
+            marker=dict(size=22), # Taille fixe pour le badge
+            textposition='middle center',
+            textfont=dict(size=10, color='white'),
             hovertemplate="<b>%{hovertext}</b><br>" +
                           "%{customdata[1]}<br>" +
                           "%{customdata[2]} publications en commun avec Nantes Université<extra></extra>"
@@ -829,11 +827,10 @@ elif view_mode == "Carte":
             showlegend=False
         )
         
-        # Utilisation de on_select pour rendre la carte cliquable
         try:
-            event = st.plotly_chart(fig_map, width="stretch", on_select="rerun", selection_mode=("points"), config={'scrollZoom': True})
+            event = st.plotly_chart(fig_map, use_container_width=True, on_select="rerun", selection_mode=("points"), config={'scrollZoom': True})
         except Exception:
-            st.plotly_chart(fig_map, width="stretch", config={'scrollZoom': True})
+            st.plotly_chart(fig_map, use_container_width=True, config={'scrollZoom': True})
             event = None
         
         st.write("---")
@@ -841,19 +838,16 @@ elif view_mode == "Carte":
         # Logique d'affichage des détails après clic
         if event and hasattr(event, 'selection') and len(event.selection.points) > 0:
             selected_point = event.selection.points[0]
-            # On récupère la liste des institutions packagées dans le point
-            raw_insts = selected_point.get('customdata', [""])[0]
-            selected_inst_names = raw_insts.split(' | ')
+            # On récupère le nom de l'institution (index 0 du customdata)
+            selected_inst_name = selected_point.get('customdata', [""])[0]
             
-            st.write(f"### 📍 Détail des institutions à cet emplacement")
+            st.write(f"### 📍 Détail de l'institution")
             
-            # On affiche un bloc distinct (expander) pour chaque institution du groupe
-            for idx, inst_name in enumerate(selected_inst_names):
-                inst_dois = map_df[map_df['institution'] == inst_name]['doi'].unique()
-                relevant_df = display_df[display_df['doi'].isin(inst_dois)]
-                pub_count = len(inst_dois)
-                
-                with st.expander(f"🏫 {inst_name} ({pub_count} publications)", expanded=True):
+            inst_dois = map_df[map_df['institution'] == selected_inst_name]['doi'].unique()
+            relevant_df = display_df[display_df['doi'].isin(inst_dois)]
+            pub_count = len(inst_dois)
+            
+            with st.expander(f"🏫 {selected_inst_name} ({pub_count} publications)", expanded=True):
                     c1, c2 = st.columns(2)
                     with c1:
                         st.write("**👤 Chercheurs nantais impliqués :**")
