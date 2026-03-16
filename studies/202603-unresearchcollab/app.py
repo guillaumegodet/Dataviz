@@ -473,9 +473,31 @@ elif selected_pole != "Tous les pôles":
 display_df = filtered_df
 
 # --- AFFICHAGE DES RÉSULTATS ---
-st.title(f"Collaborations : "
-         f"{selected_author if selected_author != 'Tous les auteurs' else selected_unit if selected_unit != 'Toutes les unités' else selected_pole if selected_pole != 'Tous les pôles' else selected_comp if selected_comp != 'Tous les établissements' else 'Nantes Université'}"
-         f" ({year_range[0]}-{year_range[1]})")
+# Construction dynamique du titre en fonction des filtres
+structure_label = selected_author if selected_author != 'Tous les auteurs' else \
+                 selected_unit if selected_unit != 'Toutes les unités' else \
+                 selected_pole if selected_pole != 'Tous les pôles' else \
+                 selected_comp if selected_comp != 'Tous les établissements' else \
+                 "Nantes Université"
+
+geo_label = ""
+if selected_country != "Tous les pays":
+    country_name = get_country_name(selected_country)
+    geo_label += f" — {country_name}"
+    if selected_inst != "Tous les établissements":
+        geo_label += f" ({selected_inst})"
+
+th_label = ""
+if selected_domain != "Tous les domaines":
+    th_label += f" — {selected_domain}"
+    if selected_field != "Toutes les disciplines":
+        th_label += f" > {selected_field}"
+        if selected_subfield != "Toutes les sous-disciplines":
+            th_label += f" > {selected_subfield}"
+            if selected_topic != "Tous les sujets":
+                th_label += f" > {selected_topic}"
+
+st.title(f"Collaborations : {structure_label} ({year_range[0]}-{year_range[1]}){geo_label}{th_label}")
 
 st.markdown("""
 Ce tableau de bord présente les publications scientifiques co-signées par des membres de **Nantes Université** avec des partenaires internationaux.   
