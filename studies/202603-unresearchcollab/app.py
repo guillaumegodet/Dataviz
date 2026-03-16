@@ -790,24 +790,31 @@ elif view_mode == "Carte":
         else:
             center_lat, center_lon, zoom_level = 20, 0, 0.5
 
+        # Préparation des données pour le survol (tooltip)
+        # On renomme temporairement les colonnes pour que l'affichage soit propre
+        inst_stats = inst_stats.rename(columns={
+            'Pays': ' ', 
+            'Publications': 'publications en commun avec Nantes U'
+        })
+        
         # Génération de la carte via Plotly Express Mapbox
         fig_map = px.scatter_mapbox(
             inst_stats,
             lat='lat',
             lon='lon',
-            size='Publications',
+            size='publications en commun avec Nantes U',
             size_max=30,
             hover_name='Institution_Label',
             hover_data={
                 'lat': False, 
                 'lon': False, 
                 'country_code': False, 
-                'Pays': True, 
-                'Publications': True,
-                'All_Institutions': True
+                ' ': True,                      # Affiche juste le pays sans label
+                'publications en commun avec Nantes U': True,
+                'All_Institutions': False        # Supprimé
             },
-            custom_data=['All_Institutions', 'Publications', 'Pays'],
-            color='Publications',
+            custom_data=['All_Institutions', 'publications en commun avec Nantes U', ' '],
+            color='publications en commun avec Nantes U',
             color_continuous_scale='Turbo',
             zoom=zoom_level,
             center=dict(lat=center_lat, lon=center_lon),
