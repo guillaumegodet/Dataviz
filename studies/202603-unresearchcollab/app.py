@@ -751,37 +751,21 @@ elif view_mode == "Carte":
     if map_df.empty:
         st.info("Aucune donnée géographique disponible pour cette sélection.")
     else:
-        # 1. Aggrégation par institution (on ne regroupe plus tout sur un seul point pour voir les différents badges)
+        # 1. Aggrégation par institution
         inst_stats = map_df.groupby(['institution', 'lat', 'lon', 'country_code']).agg({
             'doi': 'nunique'
         }).reset_index()
         
-        inst_stats.columns = ['institution', 'lat', 'lon', 'country_code', 'Publications']
+        inst_stats.columns = ['institution', 'lat', 'lon', 'country_code', 'count']
         inst_stats['lat'] = pd.to_numeric(inst_stats['lat'], errors='coerce')
         inst_stats['lon'] = pd.to_numeric(inst_stats['lon'], errors='coerce')
         inst_stats = inst_stats.dropna(subset=['lat', 'lon'])
-        inst_stats['Pays'] = inst_stats['country_code'].apply(get_country_name)
-
-        # 2. Gestion des superpositions (Jitter)
-        # Si plusieurs badges sont au même endroit, on les décale légèrement pour qu'ils soient tous visibles
-        inst_stats['pos_id'] = inst_stats['lat'].astype(str) + inst_stats['lon'].astype(str)
-        counts = inst_stats.groupby('pos_id').cumcount()
-        # On applique un léger décalage radial/aléatoire pour les doublons
-        import numpy as np
-        mask = counts > 0
-        inst_stats.loc[mask, 'lat'] += np.sin(counts[mask]) * 0.005
-        inst_stats.loc[mask, 'lon'] += np.cos(counts[mask]) * 0.005
-
-        # Préparation des labels pour le clic et le survol
-        inst_stats['Institution_Label'] = inst_stats['institution']
         
-        # Renommage pour le tooltip
-        inst_stats = inst_stats.rename(columns={
-            'Pays': ' ', 
-            'Publications': 'publications en commun avec Nantes U'
-        })
-
-        # 2b. Calcul du centre et du zoom (restauré)
+        # Conversion CRITIQUE en string pour éviter l'erreur "U.replace is not a function" dans Plotly JS
+        inst_stats['label_text'] = inst_stats['count'].astype(str)
+        inst_stats['pays_full'] = inst_stats['country_code'].apply(get_country_name)
+        
+        # 2b. Calcul du centre et du zoom
         if selected_country != "Tous les pays" and not inst_stats.empty:
             center_lat = inst_stats['lat'].mean()
             center_lon = inst_stats['lon'].mean()
@@ -801,22 +785,21 @@ elif view_mode == "Carte":
             inst_stats,
             lat='lat',
             lon='lon',
-            hover_name='Institution_Label',
-            text='publications en commun avec Nantes U',
-            custom_data=['institution', ' ', 'publications en commun avec Nantes U'],
-            color_discrete_sequence=['#004d5b'], # Couleur teal sombre comme sur la capture
+            hover_name='institution',
+            text='label_text',
+            custom_data=['institution', 'pays_full', 'label_text'],
             zoom=zoom_level,
             center=dict(lat=center_lat, lon=center_lon),
             mapbox_style="open-street-map"
         )
         
-        # Configuration des badges (texte au centre du cercle)
+        # Configuration des badges
         fig_map.update_traces(
             mode='markers+text',
-            marker=dict(size=22), # Taille fixe pour le badge
+            marker=dict(size=25, color='#004d5b'),
             textposition='middle center',
             textfont=dict(size=10, color='white'),
-            hovertemplate="<b>%{hovertext}</b><br>" +
+            hovertemplate="<b>%{customdata[0]}</b><br>" +
                           "%{customdata[1]}<br>" +
                           "%{customdata[2]} publications en commun avec Nantes Université<extra></extra>"
         )
