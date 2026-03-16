@@ -94,17 +94,4 @@ AAU · CAPHI · CDMO · CEISAM · CENS · CFV · CR2TI · CRCI2NA · CReAAH · C
 
 **Développé par :** [guillaumegodet](https://github.com/guillaumegodet)  
 **Données :** [OpenAlex](https://openalex.org/) (licence CC0)
-
----
-
-## 🌐 Déploiement GitLab Pages (stlite)
-
-Ce projet est configuré pour être déployé sur **GitLab Pages** via [stlite](https://github.com/whitphx/stlite), une version de Streamlit qui s'exécute entièrement dans le navigateur du visiteur (sans serveur Python nécessaire).
-
-### Fichiers de configuration
-- `.gitlab-ci.yml` : Automatise la copie des fichiers vers le dossier `public/`.
-- `index.html` : Point d'entrée qui charge le moteur stlite et l'application.
-
-### URL de déploiement
-Une fois le CI terminé sur le GitLab de l'Université de Nantes, l'application est disponible à l'adresse :  
-`https://dashboard-collaborations-internationales-64bb9a.univ-nantes.io`
+
