@@ -55,6 +55,14 @@ NANTES_MAP = {
 # Mapping inverse : libellé -> ID
 NANTES_LABEL_TO_ID = {v: k for k, v in NANTES_MAP.items()}
 
+# Mapping des Pôles Nantes Université
+POLES_MAP = {
+    "Pôle Humanités": ["CAPHI", "CFV", "CReAAH", "CREN", "CRHIA", "CRINI", "ESO", "LAMO", "LETG", "LLING", "LPPL"],
+    "Pôle S&T": ["CEISAM", "GeM", "GEPEA", "IETR", "IMN", "IREENA", "LMJL", "LPG", "LS2N", "LTeN", "SUBATECH", "US2B"],
+    "Pôle Santé": ["CR2TI", "CRCI2NA", "IICiMed", "INCIT", "ISOMER", "MIP", "PHAN", "RMeS", "SPHERE", "TaRGeT", "TENS", "ITX"],
+    "Pôle Sociétés": ["CDMO", "CENS", "DCS", "IRDP", "LEMNA"]
+}
+
 def get_country_name(code):
     try:
         if code == 'UK':
@@ -311,19 +319,40 @@ selected_topic = st.sidebar.selectbox("Filtre par sujet :", topic_options, index
 st.query_params["topic"] = selected_topic
 
 # --- FILTRE UNITÉ DE RECHERCHE ---
-st.sidebar.header("🏢 Unité de recherche")
-units_sorted = ["Toutes les unités"] + sorted(NANTES_MAP.values())
+st.sidebar.header("🏢 Structure Nantaise")
+
+# 1. Filtre par Pôle
+poles_options = ["Tous les pôles"] + sorted(POLES_MAP.keys())
+url_pole = st.query_params.get("pole", "Tous les pôles")
+pole_idx = poles_options.index(url_pole) if url_pole in poles_options else 0
+selected_pole = st.sidebar.selectbox("Filtrer par pôle :", poles_options, index=pole_idx)
+st.query_params["pole"] = selected_pole
+
+# 2. Filtre par Unité (dynamique selon le pôle)
+if selected_pole != "Tous les pôles":
+    allowed_units = POLES_MAP[selected_pole]
+    units_sorted = ["Toutes les unités"] + sorted(allowed_units)
+else:
+    units_sorted = ["Toutes les unités"] + sorted(NANTES_MAP.values())
+
 url_unit = st.query_params.get("unit", "Toutes les unités")
-unit_idx = units_sorted.index(url_unit) if url_unit in units_sorted else 0
+if url_unit not in units_sorted: url_unit = "Toutes les unités"
+unit_idx = units_sorted.index(url_unit)
 selected_unit = st.sidebar.selectbox("Filtrer par unité nantaise :", units_sorted, index=unit_idx)
 st.query_params["unit"] = selected_unit
 
 # --- RECHERCHE PAR CHERCHEUR ---
 st.sidebar.header("👤 Chercheur Nantais")
-# La liste des auteurs se restreint à l'unité choisie si applicable
+# La liste des auteurs se restreint à l'unité choisie ou au pôle choisi
 if selected_unit != "Toutes les unités":
     unit_id = NANTES_LABEL_TO_ID[selected_unit]
     unit_authors_df = df[(df['is_nantes'] == True) & (df['inst_id'].str.contains(unit_id, na=False, regex=False))]
+    nantes_authors_list = sorted(unit_authors_df['author'].unique())
+elif selected_pole != "Tous les pôles":
+    pole_units = POLES_MAP[selected_pole]
+    pole_ids = [NANTES_LABEL_TO_ID[u] for u in pole_units if u in NANTES_LABEL_TO_ID]
+    regex_pattern = '|'.join(pole_ids)
+    unit_authors_df = df[(df['is_nantes'] == True) & (df['inst_id'].str.contains(regex_pattern, na=False, regex=True))]
     nantes_authors_list = sorted(unit_authors_df['author'].unique())
 else:
     nantes_authors_list = sorted(df[df['is_nantes'] == True]['author'].unique())
@@ -401,7 +430,7 @@ if selected_topic != "Tous les sujets":
     t_dois = filtered_df[filtered_df['topics'].str.contains(selected_topic, na=False, regex=False)]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(t_dois)]
 
-# Filtre unité de recherche : on garde les DOI où au moins un auteur nantais est de l'unité
+# Filtre structure nantaise (Pôle / Unité)
 if selected_unit != "Toutes les unités":
     unit_id = NANTES_LABEL_TO_ID[selected_unit]
     unit_dois = filtered_df[
@@ -409,12 +438,21 @@ if selected_unit != "Toutes les unités":
         (filtered_df['inst_id'].str.contains(unit_id, na=False, regex=False, case=False))
     ]['doi'].unique()
     filtered_df = filtered_df[filtered_df['doi'].isin(unit_dois)]
+elif selected_pole != "Tous les pôles":
+    pole_units = POLES_MAP[selected_pole]
+    pole_ids = [NANTES_LABEL_TO_ID[u] for u in pole_units if u in NANTES_LABEL_TO_ID]
+    regex_pattern = '|'.join(pole_ids)
+    unit_dois = filtered_df[
+        (filtered_df['is_nantes'] == True) &
+        (filtered_df['inst_id'].str.contains(regex_pattern, na=False, regex=True))
+    ]['doi'].unique()
+    filtered_df = filtered_df[filtered_df['doi'].isin(unit_dois)]
 
 display_df = filtered_df
 
 # --- AFFICHAGE DES RÉSULTATS ---
 st.title(f"Collaborations : "
-         f"{selected_author if selected_author != 'Tous les auteurs' else selected_unit if selected_unit != 'Toutes les unités' else 'Nantes Université'}"
+         f"{selected_author if selected_author != 'Tous les auteurs' else selected_unit if selected_unit != 'Toutes les unités' else selected_pole if selected_pole != 'Tous les pôles' else 'Nantes Université'}"
          f" ({year_range[0]}-{year_range[1]})")
 
 st.markdown("""
