@@ -805,7 +805,7 @@ elif view_mode == "Carte":
             size='publications en commun avec Nantes U',
             size_max=30,
             hover_name='Institution_Label',
-            custom_data=[' ', 'publications en commun avec Nantes U'],
+            custom_data=['All_Institutions', ' ', 'publications en commun avec Nantes U'],
             color='publications en commun avec Nantes U',
             color_continuous_scale='Turbo',
             zoom=zoom_level,
@@ -814,10 +814,13 @@ elif view_mode == "Carte":
         )
         
         # Définition d'un template de survol propre (hover_template)
+        # customdata[0] = All_Institutions (utilisé pour le clic)
+        # customdata[1] = Pays (nom de colonne ' ')
+        # customdata[2] = Nombre de publications
         fig_map.update_traces(
             hovertemplate="<b>%{hovertext}</b><br>" +
-                          "%{customdata[0]}<br>" +
-                          "%{customdata[1]} publications en commun avec Nantes Université<extra></extra>"
+                          "%{customdata[1]}<br>" +
+                          "%{customdata[2]} publications en commun avec Nantes Université<extra></extra>"
         )
         
         fig_map.update_layout(
