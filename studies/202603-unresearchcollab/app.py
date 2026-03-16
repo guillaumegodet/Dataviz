@@ -460,6 +460,34 @@ if view_mode == "Dataviz":
         st.info("Aucune collaboration internationale sur ces critères.")
 
     st.write("---")
+    st.write("### 📈 Évolution temporelle")
+    # On dédoublonne les publications par année pour compter les DOI uniques
+    evo_df = display_df[['doi', 'year']].drop_duplicates()
+    evo_stats = evo_df.groupby('year').size().reset_index(name='count')
+    
+    if not evo_stats.empty:
+        # On s'assure d'avoir toutes les années de la plage, même celles à 0
+        full_years = pd.DataFrame({'year': range(year_range[0], year_range[1] + 1)})
+        evo_stats = pd.merge(full_years, evo_stats, on='year', how='left').fillna(0)
+        
+        fig_evo = px.line(
+            evo_stats, 
+            x='year', 
+            y='count',
+            labels={'year': 'Année', 'count': 'Co-publications'},
+            markers=True
+        )
+        fig_evo.update_traces(line_color='#2E86C1', line_width=3, marker=dict(size=8))
+        fig_evo.update_layout(
+            xaxis_type='category',
+            hovermode='x unified',
+            yaxis_title="Nombre de publications"
+        )
+        st.plotly_chart(fig_evo, use_container_width=True)
+    else:
+        st.info("Aucune donnée pour l'évolution temporelle.")
+
+    st.write("---")
     st.write("### 👥 Auteurs Nantais")
     # Compter les publications uniques (par DOI) par auteurs nantais dans les données filtrées
     nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().reset_index()
