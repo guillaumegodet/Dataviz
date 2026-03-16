@@ -589,9 +589,36 @@ if view_mode == "Dataviz":
             color_continuous_scale='Viridis'
         )
         fig_authors.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_authors, width="stretch")
+        st.plotly_chart(fig_authors, use_container_width=True)
     else:
         st.info("Aucun auteur nantais trouvé.")
+
+    st.write("---")
+    st.write("### 🏢 Unités nantaises (Labos)")
+    # Extraction et dédoublonnage des labos officiels
+    nantes_labs_df = display_df[display_df['is_nantes'] == True].copy()
+    nantes_labs_df = nantes_labs_df.assign(lab=nantes_labs_df['institution'].str.split('|')).explode('lab')
+    nantes_labs_df['lab'] = nantes_labs_df['lab'].str.strip()
+    
+    # On ne garde que les labos qui font partie de notre liste officielle
+    official_labs = set(NANTES_MAP.values())
+    lab_stats = nantes_labs_df[nantes_labs_df['lab'].isin(official_labs)].groupby('lab', observed=True)['doi'].nunique().reset_index()
+    lab_stats.columns = ['Laboratoire', 'Publications']
+    lab_stats = lab_stats[lab_stats['Publications'] > 0].sort_values('Publications', ascending=False)
+    
+    if not lab_stats.empty:
+        fig_labs = px.bar(
+            lab_stats.head(20), # On montre le top 20
+            y='Laboratoire', 
+            x='Publications', 
+            orientation='h',
+            color='Publications',
+            color_continuous_scale='Magma'
+        )
+        fig_labs.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
+        st.plotly_chart(fig_labs, use_container_width=True)
+    else:
+        st.info("Aucune unité de recherche identifiée.")
 
     st.write("---")
     st.write("### 🎓 Domaines (Subfields)")
