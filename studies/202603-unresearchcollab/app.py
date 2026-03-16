@@ -519,16 +519,12 @@ st.query_params["mode"] = view_mode
 st.write("---")
 
 if view_mode == "Dataviz":
+    # 1. PAYS PARTENAIRES
     st.write("### 🚩 Pays partenaires")
-    # On s'assure de ne compter chaque pays qu'une seule fois par publication
-    # 1. On récupère les couples (DOI, liste de pays) uniques
     paper_countries = display_df[['doi', 'country']].drop_duplicates()
-    # 2. On éclate les pays et on dédoublonne pour avoir des couples (DOI, pays) uniques
     exploded_countries = paper_countries.assign(country=paper_countries['country'].str.split('|')).explode('country')
     exploded_countries['country'] = exploded_countries['country'].str.strip()
     unique_paper_country = exploded_countries.drop_duplicates()
-    
-    # 3. On compte et on exclut la France et les valeurs vides
     valid_countries = unique_paper_country[(unique_paper_country['country'] != 'FR') & (unique_paper_country['country'] != '') & (unique_paper_country['country'] != 'nan')]
     stats_countries = valid_countries['country'].value_counts().reset_index()
     stats_countries.columns = ['country_code', 'count']
@@ -537,112 +533,114 @@ if view_mode == "Dataviz":
     
     if not stats_countries.empty:
         fig_pie = px.pie(stats_countries, values='count', names='country_name', hole=0.4)
-        st.plotly_chart(fig_pie, width="stretch")
+        st.plotly_chart(fig_pie, use_container_width=True)
     else:
         st.info("Aucune collaboration internationale sur ces critères.")
 
     st.write("---")
+    
+    # 2. ÉVOLUTION TEMPORELLE
     st.write("### 📈 Évolution temporelle")
-    # On dédoublonne les publications par année pour compter les DOI uniques
     evo_df = display_df[['doi', 'year']].drop_duplicates()
     evo_stats = evo_df.groupby('year').size().reset_index(name='count')
-    
     if not evo_stats.empty:
-        # On s'assure d'avoir toutes les années de la plage, même celles à 0
         full_years = pd.DataFrame({'year': range(year_range[0], year_range[1] + 1)})
         evo_stats = pd.merge(full_years, evo_stats, on='year', how='left').fillna(0)
-        
-        fig_evo = px.line(
-            evo_stats, 
-            x='year', 
-            y='count',
-            labels={'year': 'Année', 'count': 'Co-publications'},
-            markers=True
-        )
+        fig_evo = px.line(evo_stats, x='year', y='count', markers=True)
         fig_evo.update_traces(line_color='#2E86C1', line_width=3, marker=dict(size=8))
-        fig_evo.update_layout(
-            xaxis_type='category',
-            hovermode='x unified',
-            yaxis_title="Nombre de publications"
-        )
+        fig_evo.update_layout(xaxis_type='category', yaxis_title="Co-publications")
         st.plotly_chart(fig_evo, use_container_width=True)
-    else:
-        st.info("Aucune donnée pour l'évolution temporelle.")
 
     st.write("---")
-    st.write("### 👥 Auteurs Nantais")
-    # Compter les publications uniques (par DOI) par auteurs nantais dans les données filtrées
-    nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().reset_index()
-    nantes_authors_stats.columns = ['Auteur', 'Publications']
-    nantes_authors_stats = nantes_authors_stats[nantes_authors_stats['Publications'] > 0]
-    nantes_authors_stats = nantes_authors_stats.sort_values('Publications', ascending=False)
-    
-    if not nantes_authors_stats.empty:
-        # On limite aux 15 premiers pour la lisibilité
-        top_nantes_authors = nantes_authors_stats.head(15)
-        fig_authors = px.bar(
-            top_nantes_authors, 
-            y='Auteur', 
-            x='Publications', 
-            orientation='h',
-            color='Publications',
-            color_continuous_scale='Viridis'
-        )
-        fig_authors.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_authors, use_container_width=True)
-    else:
-        st.info("Aucun auteur nantais trouvé.")
+
+    # 3. ÉTABLISSEMENTS NANTAIS
+    st.write("### 🏫 Établissements nantais")
+    comp_stats = []
+    for name, cid in COMPONENTS_MAP.items():
+        count = display_df[(display_df['is_nantes'] == True) & (display_df['inst_id'].str.contains(cid, na=False))]['doi'].nunique()
+        if count > 0:
+            comp_stats.append({'Établissement': name, 'Publications': count})
+    df_comp = pd.DataFrame(comp_stats)
+    if not df_comp.empty:
+        fig_comp = px.bar(df_comp.sort_values('Publications', ascending=False), x='Publications', y='Établissement', orientation='h', color='Publications', color_continuous_scale='Greens')
+        fig_comp.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
+        st.plotly_chart(fig_comp, use_container_width=True)
 
     st.write("---")
-    st.write("### 🏢 Unités nantaises (Labos)")
-    # Extraction et dédoublonnage des labos officiels
+
+    # 4. PÔLES
+    st.write("### 🧬 Pôles")
+    pole_stats = []
+    for p_name, p_units in POLES_MAP.items():
+        p_ids = [NANTES_LABEL_TO_ID[u] for u in p_units if u in NANTES_LABEL_TO_ID]
+        regex = '|'.join(p_ids)
+        count = display_df[(display_df['is_nantes'] == True) & (display_df['inst_id'].str.contains(regex, na=False))]['doi'].nunique()
+        if count > 0:
+            pole_stats.append({'Pôle': p_name, 'Publications': count})
+    df_pole = pd.DataFrame(pole_stats)
+    if not df_pole.empty:
+        fig_p = px.bar(df_pole.sort_values('Publications', ascending=False), x='Publications', y='Pôle', orientation='h', color='Publications', color_continuous_scale='Purples')
+        fig_p.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
+        st.plotly_chart(fig_p, use_container_width=True)
+
+    st.write("---")
+
+    # 5. UNITÉS DE RECHERCHE
+    st.write("### 🏢 Unités de recherche (Labos)")
     nantes_labs_df = display_df[display_df['is_nantes'] == True].copy()
     nantes_labs_df = nantes_labs_df.assign(lab=nantes_labs_df['institution'].str.split('|')).explode('lab')
     nantes_labs_df['lab'] = nantes_labs_df['lab'].str.strip()
-    
-    # On ne garde que les labos qui font partie de notre liste officielle
     official_labs = set(NANTES_MAP.values())
     lab_stats = nantes_labs_df[nantes_labs_df['lab'].isin(official_labs)].groupby('lab', observed=True)['doi'].nunique().reset_index()
     lab_stats.columns = ['Laboratoire', 'Publications']
     lab_stats = lab_stats[lab_stats['Publications'] > 0].sort_values('Publications', ascending=False)
-    
     if not lab_stats.empty:
-        fig_labs = px.bar(
-            lab_stats.head(20), # On montre le top 20
-            y='Laboratoire', 
-            x='Publications', 
-            orientation='h',
-            color='Publications',
-            color_continuous_scale='Magma'
-        )
+        fig_labs = px.bar(lab_stats.head(20), y='Laboratoire', x='Publications', orientation='h', color='Publications', color_continuous_scale='Magma')
         fig_labs.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
         st.plotly_chart(fig_labs, use_container_width=True)
-    else:
-        st.info("Aucune unité de recherche identifiée.")
 
     st.write("---")
-    st.write("### 🎓 Domaines (Subfields)")
-    paper_subfields = display_df[['doi', 'subfields']].drop_duplicates()
-    exploded_subfields = paper_subfields.assign(subfields=paper_subfields['subfields'].str.split('|')).explode('subfields')
-    stats_subfields = exploded_subfields['subfields'].str.strip().value_counts().reset_index()
-    stats_subfields.columns = ['Domaine', 'Publications']
-    
-    if not stats_subfields.empty:
-        fig_sub = px.bar(stats_subfields.head(10), y='Domaine', x='Publications', orientation='h', color='Publications', color_continuous_scale='Blues')
-        fig_sub.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_sub, width="stretch")
+
+    # 6. AUTEURS NANTAIS
+    st.write("### 👥 Auteurs nantais")
+    nantes_authors_stats = display_df[display_df['is_nantes'] == True].groupby('author', observed=True)['doi'].nunique().reset_index()
+    nantes_authors_stats.columns = ['Auteur', 'Publications']
+    nantes_authors_stats = nantes_authors_stats[nantes_authors_stats['Publications'] > 0].sort_values('Publications', ascending=False)
+    if not nantes_authors_stats.empty:
+        fig_authors = px.bar(nantes_authors_stats.head(15), y='Auteur', x='Publications', orientation='h', color='Publications', color_continuous_scale='Viridis')
+        fig_authors.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
+        st.plotly_chart(fig_authors, use_container_width=True)
 
     st.write("---")
-    st.write("### 🔬 Sujets (Topics)")
-    paper_topics = display_df[['doi', 'topics']].drop_duplicates()
-    exploded_topics = paper_topics.assign(topics=paper_topics['topics'].str.split('|')).explode('topics')
-    stats_topics = exploded_topics['topics'].str.strip().value_counts().reset_index()
-    stats_topics.columns = ['Sujet', 'Publications']
-    
-    if not stats_topics.empty:
-        fig_top = px.bar(stats_topics.head(10), y='Sujet', x='Publications', orientation='h', color='Publications', color_continuous_scale='Reds')
-        fig_top.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_top, width="stretch")
+
+    # FONCTION HELPER POUR LES GRAPHES THÉMATIQUES
+    def plot_thematic(df, col, title, color_scale, head=10):
+        st.write(f"### {title}")
+        paper_data = df[['doi', col]].drop_duplicates()
+        exploded = paper_data.assign(val=paper_data[col].str.split('|')).explode('val')
+        exploded['val'] = exploded['val'].str.strip()
+        stats = exploded[exploded['val'] != ""].groupby('val')['doi'].nunique().reset_index()
+        stats.columns = ['Label', 'Publications']
+        stats = stats.sort_values('Publications', ascending=False)
+        if not stats.empty:
+            fig = px.bar(stats.head(head), y='Label', x='Publications', orientation='h', color='Publications', color_continuous_scale=color_scale)
+            fig.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False, yaxis_title=None)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.write("_Aucune donnée disponible_")
+
+    # 7. DOMAINES
+    plot_thematic(display_df, 'domains', "🎓 Domaines", 'Blues')
+    st.write("---")
+    # 8. DISCIPLINES
+    plot_thematic(display_df, 'fields', "📚 Disciplines", 'Teal')
+    st.write("---")
+    # 9. SOUS-DISCIPLINES
+    plot_thematic(display_df, 'subfields', "🧪 Sous-disciplines", 'GnBu')
+    st.write("---")
+    # 10. SUJETS
+    plot_thematic(display_df, 'topics', "🔬 Sujets", 'Reds', head=15)
+
 elif view_mode == "Institutions":
     # Mode : Universités partenaires
     # On utilise explode_parallel_cols pour avoir une liste propre d'institutions et leurs pays
