@@ -106,5 +106,5 @@ Ce projet est configuré pour être déployé sur **GitLab Pages** via [stlite](
 - `index.html` : Point d'entrée qui charge le moteur stlite et l'application.
 
 ### URL de déploiement
-Une fois le CI terminé sur le GitLab de l'Université de Nantes, l'application sera disponible à l'adresse :  
-`https://science-ouverte.pages.univ-nantes.fr/dashboard-collaborations-internationales/`
+Une fois le CI terminé sur le GitLab de l'Université de Nantes, l'application est disponible à l'adresse :  
+`https://dashboard-collaborations-internationales-64bb9a.univ-nantes.io`
