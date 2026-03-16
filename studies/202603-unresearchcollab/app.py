@@ -748,6 +748,11 @@ elif view_mode == "Carte":
     if selected_country != "Tous les pays":
         map_df = map_df[map_df['country_code'] == selected_country]
 
+    # Conversion numérique pour map_df aussi (important pour le filtrage au clic)
+    map_df['lat'] = pd.to_numeric(map_df['lat'], errors='coerce')
+    map_df['lon'] = pd.to_numeric(map_df['lon'], errors='coerce')
+    map_df = map_df.dropna(subset=['lat', 'lon'])
+
     if map_df.empty:
         st.info("Aucune donnée géographique disponible pour cette sélection.")
     else:
@@ -760,17 +765,30 @@ elif view_mode == "Carte":
         inst_stats['lat'] = pd.to_numeric(inst_stats['lat'], errors='coerce')
         inst_stats['lon'] = pd.to_numeric(inst_stats['lon'], errors='coerce')
         inst_stats = inst_stats.dropna(subset=['lat', 'lon'])
-        
         # Conversion CRITIQUE en string pour éviter l'erreur "U.replace is not a function" dans Plotly JS
         inst_stats['label_text'] = inst_stats['count'].astype(str)
         inst_stats['pays_full'] = inst_stats['country_code'].apply(get_country_name)
+
+        # 2. Gestion des superpositions (Jitter)
+        # Si plusieurs badges sont au même endroit, on les décale légèrement pour qu'ils soient tous visibles
+        inst_stats['original_lat'] = inst_stats['lat']
+        inst_stats['original_lon'] = inst_stats['lon']
+        inst_stats['pos_id'] = inst_stats['lat'].astype(str) + inst_stats['lon'].astype(str)
+        counts = inst_stats.groupby('pos_id').cumcount()
         
+        import numpy as np
+        mask = counts > 0
+        angle = counts * (2 * np.pi / 8)
+        radius = 0.008 * (1 + counts // 8)
+        inst_stats.loc[mask, 'lat'] += np.sin(angle[mask]) * radius[mask]
+        inst_stats.loc[mask, 'lon'] += np.cos(angle[mask]) * radius[mask]
+
         # 2b. Calcul du centre et du zoom
         if selected_country != "Tous les pays" and not inst_stats.empty:
-            center_lat = inst_stats['lat'].mean()
-            center_lon = inst_stats['lon'].mean()
-            lat_range = inst_stats['lat'].max() - inst_stats['lat'].min()
-            lon_range = inst_stats['lon'].max() - inst_stats['lon'].min()
+            center_lat = inst_stats['original_lat'].mean()
+            center_lon = inst_stats['original_lon'].mean()
+            lat_range = inst_stats['original_lat'].max() - inst_stats['original_lat'].min()
+            lon_range = inst_stats['original_lon'].max() - inst_stats['original_lon'].min()
             max_range = max(lat_range, lon_range)
             if max_range < 0.1: zoom_level = 9
             elif max_range < 1: zoom_level = 7
@@ -787,13 +805,12 @@ elif view_mode == "Carte":
             lon='lon',
             hover_name='institution',
             text='label_text',
-            custom_data=['institution', 'pays_full', 'label_text'],
+            custom_data=['institution', 'pays_full', 'label_text', 'original_lat', 'original_lon'],
             zoom=zoom_level,
             center=dict(lat=center_lat, lon=center_lon),
             mapbox_style="open-street-map"
         )
         
-        # Configuration des badges
         fig_map.update_traces(
             mode='markers+text',
             marker=dict(size=25, color='#004d5b'),
@@ -821,16 +838,24 @@ elif view_mode == "Carte":
         # Logique d'affichage des détails après clic
         if event and hasattr(event, 'selection') and len(event.selection.points) > 0:
             selected_point = event.selection.points[0]
-            # On récupère le nom de l'institution (index 0 du customdata)
-            selected_inst_name = selected_point.get('customdata', [""])[0]
+            # On récupère les infos du customdata
+            cdata = selected_point.get('customdata', ["", "", "", 0, 0])
+            sel_name = cdata[0]
+            orig_lat = cdata[3]
+            orig_lon = cdata[4]
             
             st.write(f"### 📍 Détail de l'institution")
             
-            inst_dois = map_df[map_df['institution'] == selected_inst_name]['doi'].unique()
+            # On filtre précisément par nom ET coordonnées originales pour éviter les mélanges
+            inst_dois = map_df[
+                (map_df['institution'] == sel_name) & 
+                (map_df['lat'] == orig_lat) & 
+                (map_df['lon'] == orig_lon)
+            ]['doi'].unique()
             relevant_df = display_df[display_df['doi'].isin(inst_dois)]
             pub_count = len(inst_dois)
             
-            with st.expander(f"🏫 {selected_inst_name} ({pub_count} publications)", expanded=True):
+            with st.expander(f"🏫 {sel_name} ({pub_count} publications)", expanded=True):
                     c1, c2 = st.columns(2)
                     with c1:
                         st.write("**👤 Chercheurs nantais impliqués :**")
