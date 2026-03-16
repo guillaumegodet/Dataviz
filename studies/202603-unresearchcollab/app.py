@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import pycountry
+from babel import Locale
 import os
 
 st.set_page_config(page_title="Dashboard Coopération Nantes Université", layout="wide")
@@ -70,9 +71,17 @@ POLES_MAP = {
 
 def get_country_name(code):
     try:
-        if code == 'UK':
-            return 'United Kingdom'
-        c = pycountry.countries.get(alpha_2=code)
+        # Cas particuliers
+        if code == 'UK': code = 'GB'
+        
+        # Tentative de traduction via Babel (standard français)
+        locale = Locale('fr')
+        name = locale.territories.get(code.upper())
+        if name:
+            return name
+            
+        # Fallback sur pycountry si non trouvé par Babel
+        c = pycountry.countries.get(alpha_2=code.upper())
         return c.name if c else code
     except:
         return code
