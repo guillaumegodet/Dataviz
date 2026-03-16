@@ -533,7 +533,7 @@ if view_mode == "Dataviz":
     
     if not stats_countries.empty:
         fig_pie = px.pie(stats_countries, values='count', names='country_name', hole=0.4)
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie, width='stretch')
     else:
         st.info("Aucune collaboration internationale sur ces critères.")
 
@@ -549,7 +549,7 @@ if view_mode == "Dataviz":
         fig_evo = px.line(evo_stats, x='year', y='count', markers=True)
         fig_evo.update_traces(line_color='#2E86C1', line_width=3, marker=dict(size=8))
         fig_evo.update_layout(xaxis_type='category', yaxis_title="Co-publications")
-        st.plotly_chart(fig_evo, use_container_width=True)
+        st.plotly_chart(fig_evo, width='stretch')
 
     st.write("---")
 
@@ -564,7 +564,7 @@ if view_mode == "Dataviz":
     if not df_comp.empty:
         fig_comp = px.bar(df_comp.sort_values('Publications', ascending=False), x='Publications', y='Établissement', orientation='h', color='Publications', color_continuous_scale='Greens')
         fig_comp.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_comp, use_container_width=True)
+        st.plotly_chart(fig_comp, width='stretch')
 
     st.write("---")
 
@@ -581,7 +581,7 @@ if view_mode == "Dataviz":
     if not df_pole.empty:
         fig_p = px.bar(df_pole.sort_values('Publications', ascending=False), x='Publications', y='Pôle', orientation='h', color='Publications', color_continuous_scale='Purples')
         fig_p.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_p, use_container_width=True)
+        st.plotly_chart(fig_p, width='stretch')
 
     st.write("---")
 
@@ -597,7 +597,7 @@ if view_mode == "Dataviz":
     if not lab_stats.empty:
         fig_labs = px.bar(lab_stats.head(20), y='Laboratoire', x='Publications', orientation='h', color='Publications', color_continuous_scale='Magma')
         fig_labs.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_labs, use_container_width=True)
+        st.plotly_chart(fig_labs, width='stretch')
 
     st.write("---")
 
@@ -609,7 +609,7 @@ if view_mode == "Dataviz":
     if not nantes_authors_stats.empty:
         fig_authors = px.bar(nantes_authors_stats.head(15), y='Auteur', x='Publications', orientation='h', color='Publications', color_continuous_scale='Viridis')
         fig_authors.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_authors, use_container_width=True)
+        st.plotly_chart(fig_authors, width='stretch')
 
     st.write("---")
 
@@ -625,7 +625,7 @@ if view_mode == "Dataviz":
         if not stats.empty:
             fig = px.bar(stats.head(head), y='Label', x='Publications', orientation='h', color='Publications', color_continuous_scale=color_scale)
             fig.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False, yaxis_title=None)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.write("_Aucune donnée disponible_")
 
@@ -811,9 +811,9 @@ elif view_mode == "Carte":
         )
         
         try:
-            event = st.plotly_chart(fig_map, use_container_width=True, on_select="rerun", selection_mode=("points"), config={'scrollZoom': True})
+            event = st.plotly_chart(fig_map, width='stretch', on_select="rerun", selection_mode=("points"), config={'scrollZoom': True})
         except Exception:
-            st.plotly_chart(fig_map, use_container_width=True, config={'scrollZoom': True})
+            st.plotly_chart(fig_map, width='stretch', config={'scrollZoom': True})
             event = None
         
         st.write("---")
