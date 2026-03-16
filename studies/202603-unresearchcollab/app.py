@@ -805,20 +805,19 @@ elif view_mode == "Carte":
             size='publications en commun avec Nantes U',
             size_max=30,
             hover_name='Institution_Label',
-            hover_data={
-                'lat': False, 
-                'lon': False, 
-                'country_code': False, 
-                ' ': True,                      # Affiche juste le pays sans label
-                'publications en commun avec Nantes U': True,
-                'All_Institutions': False        # Supprimé
-            },
-            custom_data=['All_Institutions', 'publications en commun avec Nantes U', ' '],
+            custom_data=[' ', 'publications en commun avec Nantes U'],
             color='publications en commun avec Nantes U',
             color_continuous_scale='Turbo',
             zoom=zoom_level,
             center=dict(lat=center_lat, lon=center_lon),
             mapbox_style="open-street-map"
+        )
+        
+        # Définition d'un template de survol propre (hover_template)
+        fig_map.update_traces(
+            hovertemplate="<b>%{hovertext}</b><br>" +
+                          "%{customdata[0]}<br>" +
+                          "%{customdata[1]} publications en commun avec Nantes Université<extra></extra>"
         )
         
         fig_map.update_layout(
