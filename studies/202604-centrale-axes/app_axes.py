@@ -15,6 +15,11 @@ AXIS_COLOR_MAP = {
     "Autre / Non classé": "#A9A9A9"                              # Dark Gray
 }
 
+# --- PATH CONFIGURATION ---
+# Use absolute path relative to this script for reliable loading on Streamlit Cloud
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE_PATH = os.path.join(SCRIPT_DIR, "centrale_axes_data.parquet")
+
 # --- GRIST CONFIGURATION ---
 GRIST_DOC_ID = "5aREUrB1kuFAcVY4GTUDfA"
 GRIST_TABLE_NAME = "Publications_centrale_axes_strategiques"
@@ -93,11 +98,10 @@ def normalize_title(text):
 
 @st.cache_data
 def load_data():
-    file_path = "centrale_axes_data.parquet"
-    if not os.path.exists(file_path):
-        st.error(f"Fichier de données {file_path} non trouvé. Exécutez d'abord `process_axes.py`.")
+    if not os.path.exists(DATA_FILE_PATH):
+        st.error(f"Fichier de données {DATA_FILE_PATH} non trouvé. Exécutez d'abord `process_axes.py`.")
         return pd.DataFrame()
-    df = pd.read_parquet(file_path)
+    df = pd.read_parquet(DATA_FILE_PATH)
     
     # Store the initial IA prediction
     df['prediction_ia'] = df['chosen_axis']
