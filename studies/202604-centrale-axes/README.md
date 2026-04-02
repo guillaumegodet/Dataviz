@@ -2,7 +2,7 @@
 
 Tableau de bord interactif pour l'analyse et la curation des publications scientifiques de Centrale Nantes (2022–2026), classées selon les **4 axes stratégiques de recherche** de l'établissement.
 
-> **Déployé via Streamlit Cloud** : [Accéder au dashboard](https://centrale-axes.streamlit.app/)
+> **Déployé via Streamlit Cloud** : [Accéder au dashboard](https://enjeux-strategiques-centrale.streamlit.app/)
 
 ---
 
