@@ -28,10 +28,10 @@ chunks = [all_inst_ids[i:i + chunk_size] for i in range(0, len(all_inst_ids), ch
 print("Fetching coordinates from OpenAlex...")
 for chunk in tqdm(chunks):
     try:
-        query_val = "|".join([f"I{i}" for i in chunk])
+        query_val = "|".join([str(i) for i in chunk])
         results = Institutions().filter(openalex=query_val).get()
         for res in results:
-            id_val = res['id'].replace("https://openalex.org/I", "")
+            id_val = res['id'].replace("https://openalex.org/", "")
             geo = res.get('geo', {})
             if geo and geo.get('latitude') and geo.get('longitude'):
                 coord_map[id_val] = {'lat': geo['latitude'], 'lon': geo['longitude']}
