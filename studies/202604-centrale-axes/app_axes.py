@@ -5,6 +5,7 @@ import os
 import requests
 import re
 import unicodedata
+from pathlib import Path
 
 # Define a distinct and high-contrast color palette for the 4 strategic axes
 AXIS_COLOR_MAP = {
@@ -93,7 +94,7 @@ def normalize_title(text):
 
 @st.cache_data
 def load_data():
-    file_path = "centrale_axes_data.parquet"
+    file_path = Path(__file__).parent / "centrale_axes_data.parquet"
     if not os.path.exists(file_path):
         st.error(f"Fichier de données {file_path} non trouvé. Exécutez d'abord `process_axes.py`.")
         return pd.DataFrame()
