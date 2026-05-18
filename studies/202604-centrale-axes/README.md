@@ -40,21 +40,19 @@ Les 4 axes stratégiques couverts :
 
 ## ⚙️ Architecture de la classification
 
-Le script `process_axes.py` utilise une approche **hybride en 2 niveaux** :
+Le script `process_axes.py` classe chaque publication par **correspondance de mots-clés sur les Topics OpenAlex**.
 
-### Niveau 1 — Correspondance sur les Topics OpenAlex *(priorité haute)*
+### Correspondance sur les Topics OpenAlex
 
-Les publications OpenAlex sont associées à des `topics` structurés (ex: `"Electric Vehicles and Infrastructure"`). Ces topics sont comparés à un **dictionnaire de mots-clés par axe** :
+Les publications OpenAlex sont associées à des `topics` structurés (ex: `"Electric Vehicles and Infrastructure"`), ainsi qu'à des `subfields` et `fields`. L'ensemble de ces libellés est comparé à un **dictionnaire de mots-clés par axe** (termes en anglais, insensible à la casse) :
 
-- Si ≥ 2 mots-clés correspondent à un axe avec une avance claire → classification directe
-- La motivation affiche : `[Topics OpenAlex] Correspondance directe sur N mot(s)-clé(s)`
+- Si l'axe gagnant totalise ≥ 2 correspondances avec une avance d'au moins 1 sur le second → classification retenue
+- Si l'axe gagnant totalise exactement 1 correspondance sans concurrence → classification retenue
+- Sinon → `Autre / Non classé`
 
-### Niveau 2 — TF-IDF sémantique sur titre + abstract *(fallback)*
+La motivation enregistrée indique les mots-clés déclencheurs : `[Topics OpenAlex] Correspondance directe sur N mot(s)-clé(s) : ...`
 
-Si les topics ne permettent pas de trancher, on compare le texte de la publication avec des **descriptions enrichies de chaque axe en anglais** via TF-IDF (unigrammes + bigrammes).
-
-- Seuil de confiance : 0.05 (en dessous → `Autre / Non classé`)
-- La motivation affiche : `[TF-IDF Sémantique] Similarité X.XX — termes communs : ...`
+Si aucun mot-clé ne correspond, la publication est classée `Autre / Non classé` avec la mention : `Aucune correspondance sur les topics OpenAlex.`
 
 ---
 
@@ -140,7 +138,6 @@ Les publications sont extraites depuis **[OpenAlex](https://openalex.org/)**, fi
 | `streamlit` | Interface web |
 | `plotly` | Graphiques interactifs |
 | `pandas` / `pyarrow` | Manipulation des données |
-| `scikit-learn` | TF-IDF vectorisation |
 | `requests` | API Grist |
 | `tqdm` | Barre de progression (process_axes.py) |
 

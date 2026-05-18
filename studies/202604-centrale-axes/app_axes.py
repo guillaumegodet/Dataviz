@@ -15,14 +15,9 @@ AXIS_COLOR_MAP = {
     "Autre / Non classé": "#A9A9A9"                              # Dark Gray
 }
 
-# --- PATH CONFIGURATION ---
-# Use absolute path relative to this script for reliable loading on Streamlit Cloud
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE_PATH = os.path.join(SCRIPT_DIR, "centrale_axes_data.parquet")
-
 # --- GRIST CONFIGURATION ---
 GRIST_DOC_ID = "5aREUrB1kuFAcVY4GTUDfA"
-GRIST_TABLE_NAME = "Publications_centrale_axes_strategiques"
+GRIST_TABLE_NAME = "Publications_centrale_axes_strategiques2"
 GRIST_BASE_URL = f"https://grist.numerique.gouv.fr/api/docs/{GRIST_DOC_ID}/tables/{GRIST_TABLE_NAME}/records"
 # Try to get API key from Streamlit secrets (local or cloud)
 try:
@@ -98,10 +93,11 @@ def normalize_title(text):
 
 @st.cache_data
 def load_data():
-    if not os.path.exists(DATA_FILE_PATH):
-        st.error(f"Fichier de données {DATA_FILE_PATH} non trouvé. Exécutez d'abord `process_axes.py`.")
+    file_path = "centrale_axes_data.parquet"
+    if not os.path.exists(file_path):
+        st.error(f"Fichier de données {file_path} non trouvé. Exécutez d'abord `process_axes.py`.")
         return pd.DataFrame()
-    df = pd.read_parquet(DATA_FILE_PATH)
+    df = pd.read_parquet(file_path)
     
     # Store the initial IA prediction
     df['prediction_ia'] = df['chosen_axis']
@@ -307,6 +303,10 @@ else:
         for idx, row in df_page.iterrows():
             with st.expander(f"📌 {row['title']} ({row['year']})"):
                 st.write(f"**👥 Auteurs :** {row['authors']}")
+                links = [f"[OpenAlex](https://openalex.org/{row['work_id']})"]
+                if row.get('doi') and pd.notna(row['doi']):
+                    links.append(f"[DOI]({row['doi']})")
+                st.markdown("🔗 " + " · ".join(links))
                 st.write(f"**📖 Revue :** {row['journal']} (ISSN: {row['issn']})")
                 st.write(f"**🎯 Axe actuel :** `{row['chosen_axis']}`")
                 if row.get('is_corrected'):

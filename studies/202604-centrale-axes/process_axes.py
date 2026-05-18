@@ -1,10 +1,6 @@
 import json
 import pandas as pd
-import re
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
-import os
 
 # =============================================================================
 # STRATEGIC AXES DEFINITION
@@ -47,6 +43,8 @@ TOPIC_KEYWORDS = {
         "autonomous vehicle", "self-driving", "autonomous driving",
         "connected vehicle", "vehicle automation",
         "ship propulsion", "maritime propulsion", "vessel propulsion",
+        "ship hydrodynamics", "vessel hydrodynamics", "ship resistance",
+        "ship maneuvering", "vessel maneuvering", "naval architecture",
         "sailing", "wind-assisted propulsion", "wind sail",
         "hydrogen propulsion", "hydrogen vehicle", "hydrogen aircraft",
         "sustainable aviation", "aircraft propulsion",
@@ -58,19 +56,19 @@ TOPIC_KEYWORDS = {
     # ── Matériaux & procédés ────────────────────────────────────────────────
     "Matériaux, procédés et process industriels durables": [
         "additive manufacturing", "3d printing",
-        "composite material", "fiber reinforced",
+        "composite material", "fiber reinforced", "mechanical behavior of composite",
         "bio-based material", "biopolymer", "biosourced",
         "recycling", "circular economy", "life cycle assessment",
-        "digital twin",
         "welding", "machining", "manufacturing process",
         "surface treatment", "coating",
         "fatigue crack", "fracture mechanics",
         "corrosion",
         "polymer", "ceramic", "alloy",
-        "industrial process", "process optimization",
         "virtual reality", "augmented reality",
         "robot manipulator", "industrial robot",
         "non-destructive testing",
+        "concrete", "cement", "reinforced concrete", "geopolymer",
+        "elasticity and material", "rock mechanics",
     ],
 
     # ── Ingénierie pour la santé ────────────────────────────────────────────
@@ -95,59 +93,6 @@ TOPIC_KEYWORDS = {
     ],
 }
 
-# =============================================================================
-# LEVEL 2 — TFIDF on title + abstract in English  (extended English lexicon)
-# We use English descriptions of the axes, much richer than the French ones,
-# so that the TF-IDF works in the same language as the abstracts.
-# =============================================================================
-# TF-IDF axis descriptions — ONLY use specific multi-word phrases or rare
-# domain nouns.  Avoid generic single words (computer, signal, model, system,
-# method, analysis, simulation, data, network, control, performance, etc.)
-# that would appear in abstracts for ANY engineering discipline.
-AXIS_DESCRIPTIONS_EN = {
-    "Production et gestion des énergies renouvelables": """
-    offshore wind turbine tidal stream tidal turbine wave energy converter
-    ocean energy photovoltaic solar panel solar cell hydrogen fuel cell
-    electrolyzer power-to-gas energy storage battery pack grid-scale storage
-    smart grid microgrid islanded grid power flow energy management system
-    renewable energy transition energy harvesting wind farm floating offshore
-    hydropower geothermal district heating
-    """,
-
-    "Mobilités décarbonnées": """
-    electric vehicle electric car hybrid electric vehicle plug-in hybrid
-    charging station battery electric drivetrain vehicle powertrain
-    autonomous vehicle self-driving vehicle connected vehicle
-    ship propulsion maritime propulsion vessel propulsion wind-assisted propulsion
-    sailing decarbonization of shipping hydrogen aircraft sustainable aviation
-    urban mobility public transport rail freight low-carbon transport
-    vehicle dynamics automotive engineering fleet electrification
-    """,
-
-    "Matériaux, procédés et process industriels durables": """
-    additive manufacturing 3d printing fused deposition selective laser sintering
-    carbon fiber reinforced composite bio-based polymer biopolymer
-    recycling circular economy life cycle assessment environmental impact
-    digital twin manufacturing welding friction stir welding machining
-    surface coating fatigue crack fracture mechanics corrosion resistance
-    ceramic alloy thermomechanical industrial process robot manipulator
-    non-destructive testing structural health monitoring of structures
-    """,
-
-    "Ingénierie pour la santé": """
-    medical imaging magnetic resonance imaging ultrasound imaging computed tomography
-    bioinformatics genomics proteomics transcriptomics metagenomics sequencing
-    microbiome microbial community microbial ecology virology bacteriophage
-    virus diversity ecological role biodiversity species diversity
-    musculoskeletal biomechanics gait analysis joint kinematics
-    robot-assisted surgery surgical robot laparoscopic surgery
-    prosthetic limb orthotic device lower limb rehabilitation exoskeleton
-    clinical diagnosis medical decision electroencephalography electromyography
-    drug delivery tissue engineering scaffold bioprinting
-    brain computer neural interface telemedicine
-    physiological patient outcome healthcare
-    """,
-}
 
 # =============================================================================
 # INSTITUTION / LAB MAPPING
@@ -173,13 +118,6 @@ def get_abstract_text(inverted_index):
             positions[pos] = word
     return " ".join([positions[p] for p in sorted(positions.keys())])
 
-
-def clean_text(text):
-    if not text:
-        return ""
-    text = text.lower()
-    text = re.sub(r"[^\w\s]", " ", text)
-    return text
 
 
 # =============================================================================
@@ -214,8 +152,8 @@ def classify_by_topics(topic_names: list[str]) -> tuple[str | None, str, dict]:
     sorted_scores = sorted(scores.values(), reverse=True)
     second_score = sorted_scores[1] if len(sorted_scores) > 1 else 0
 
-    if best_score >= 2 and (best_score - second_score) >= 1:
-        # Find matching keywords for the motivation text
+    # Accept if ≥2 hits with a clear lead, OR exactly 1 hit with no competition
+    if (best_score >= 2 and (best_score - second_score) >= 1) or (best_score == 1 and second_score == 0):
         matched_kw = [
             kw for kw in TOPIC_KEYWORDS[best_axis] if kw in topic_text
         ]
@@ -225,72 +163,9 @@ def classify_by_topics(topic_names: list[str]) -> tuple[str | None, str, dict]:
         )
         return best_axis, motivation, scores
 
-    # Weak or ambiguous → let TF-IDF decide
     return None, "", scores
 
 
-# =============================================================================
-# CLASSIFICATION — LEVEL 2 : TF-IDF on title + abstract
-# =============================================================================
-
-def build_tfidf_classifier():
-    axis_names = list(AXIS_DESCRIPTIONS_EN.keys())
-    axis_texts = [AXIS_DESCRIPTIONS_EN[n] for n in axis_names]
-    # ngram (1,2): unigrams + bigrams — good balance between recall and precision.
-    # The axis descriptions are carefully curated to avoid generic terms, so
-    # unigrams here are already domain-specific ('genomics', 'photovoltaic', etc.)
-    vectorizer = TfidfVectorizer(ngram_range=(1, 2), min_df=1, sublinear_tf=True)
-    axis_vectors = vectorizer.fit_transform(axis_texts)
-    return vectorizer, axis_vectors, axis_names
-
-
-def classify_by_tfidf(vectorizer, axis_vectors, axis_names, text) -> tuple[str, str, dict]:
-    if not text.strip():
-        return (
-            "Autre / Non classé",
-            "Données textuelles insuffisantes.",
-            {ax: 0.0 for ax in axis_names},
-        )
-
-    work_vector = vectorizer.transform([text])
-    similarities = cosine_similarity(work_vector, axis_vectors)[0]
-    scores = {axis_names[i]: float(similarities[i]) for i in range(len(axis_names))}
-
-    max_idx = int(similarities.argmax())
-    best_score = similarities[max_idx]
-
-    # Raised threshold to 0.05 — good balance: avoid weak matches but don't over-exclude
-    if best_score < 0.05:
-        return (
-            "Autre / Non classé",
-            "Aucune similarité significative avec les axes stratégiques.",
-            scores,
-        )
-
-    chosen_axis = axis_names[max_idx]
-
-    # Build motivation from shared keywords (bigrams/trigrams)
-    feature_names = vectorizer.get_feature_names_out()
-    work_tfidf = work_vector.toarray()[0]
-    axis_doc_vector = axis_vectors[max_idx].toarray()[0]
-    combined_importance = work_tfidf * axis_doc_vector
-    top_indices = combined_importance.argsort()[-15:][::-1]
-    matching_keywords = [
-        feature_names[i]
-        for i in top_indices
-        if combined_importance[i] > 0
-    ]
-
-    if matching_keywords:
-        kw_str = ", ".join(matching_keywords[:5])
-        motivation = (
-            f"[TF-IDF Sémantique] Similarité {best_score:.2f} — "
-            f"termes communs : {kw_str}."
-        )
-    else:
-        motivation = f"[TF-IDF Sémantique] Score de similarité globale : {best_score:.2f}."
-
-    return chosen_axis, motivation, scores
 
 
 # =============================================================================
@@ -304,9 +179,6 @@ def process_data(input_file, output_file):
 
     results = data.get("results", [])
     processed_results = []
-
-    # Build TF-IDF classifier once
-    vectorizer, axis_vectors, axis_names = build_tfidf_classifier()
 
     print("Processing publications...")
     for work in tqdm(results):
@@ -330,21 +202,13 @@ def process_data(input_file, output_file):
             if t.get("field", {}).get("display_name"):
                 topic_display_names.append(t["field"]["display_name"])
 
-        keywords = " ".join([kw.get("display_name", "") for kw in work.get("keywords", [])])
-        concepts = " ".join([c.get("display_name", "") for c in work.get("concepts", [])])
-
         # ── Level 1: Topic keyword matching ────────────────────────────────
         chosen_axis, motivation, l1_scores = classify_by_topics(topic_display_names)
 
-        # ── Level 2: TF-IDF fallback ────────────────────────────────────────
         if chosen_axis is None:
-            full_text = clean_text(f"{title} {abstract} {keywords} {concepts}")
-            chosen_axis, motivation, l2_scores = classify_by_tfidf(
-                vectorizer, axis_vectors, axis_names, full_text
-            )
-            axis_scores = l2_scores
-        else:
-            axis_scores = {ax: float(l1_scores.get(ax, 0)) for ax in axis_names}
+            chosen_axis = "Autre / Non classé"
+            motivation = "Aucune correspondance sur les topics OpenAlex."
+        axis_scores = {ax: float(l1_scores.get(ax, 0)) for ax in AXIS_NAMES}
 
         # ── Lab & Authors ────────────────────────────────────────────────────
         nantes_authors = []
