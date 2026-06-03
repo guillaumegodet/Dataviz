@@ -374,42 +374,57 @@ else:
     
     st.markdown("---")
     
-    c3, c4 = st.columns(2)
-    
+    c3, c4, c5 = st.columns(3)
+
     with c3:
         st.subheader("Dominance par Labo")
-        # Explode labs to count per lab/axis
         lab_df = df.copy()
         lab_df = lab_df.assign(lab=lab_df['labs'].str.split('|')).explode('lab')
         lab_df = lab_df[lab_df['lab'] != "Inconnu"]
-        
+
         if not lab_df.empty:
             lab_axis_stats = lab_df.groupby(['lab', 'chosen_axis']).size().reset_index(name='Count')
-            fig_lab = px.bar(lab_axis_stats, x='Count', y='lab', color='chosen_axis', 
+            fig_lab = px.bar(lab_axis_stats, x='Count', y='lab', color='chosen_axis',
                             orientation='h', barmode='stack',
                             color_discrete_map=AXIS_COLOR_MAP)
             st.plotly_chart(fig_lab, width='stretch')
         else:
             st.write("Aucune donnée labo disponible.")
-            
+
     with c4:
         st.subheader("Top Chercheurs Nantais")
-        # Explode authors to count per author/axis
         author_df = df.copy()
         author_df = author_df.assign(author=author_df['authors'].str.split('|')).explode('author')
-        author_df = author_df[author_df['author'] != ""]
-        
+        author_df = author_df[author_df['author'].str.strip() != ""]
+
         if not author_df.empty:
-            # We filter top 15 authors to keep it readable
             top_authors_list = author_df['author'].value_counts().head(15).index.tolist()
             author_axis_stats = author_df[author_df['author'].isin(top_authors_list)].groupby(['author', 'chosen_axis']).size().reset_index(name='Count')
-            
             fig_auth = px.bar(author_axis_stats, x='Count', y='author', color='chosen_axis',
                              orientation='h', barmode='stack',
                              color_discrete_map=AXIS_COLOR_MAP)
             st.plotly_chart(fig_auth, width='stretch')
         else:
             st.write("Aucune donnée chercheur disponible.")
+
+    with c5:
+        st.subheader("Top Permanents Centrale Nantes")
+        perm_df = df.copy()
+        perm_df = perm_df.assign(author=perm_df['authors'].str.split('|')).explode('author')
+        perm_df['author'] = perm_df['author'].str.strip()
+        perm_df['canonical'] = perm_df['author'].apply(get_canonical_name)
+        perm_df = perm_df[perm_df['canonical'].notna()]
+
+        if not perm_df.empty:
+            top_perm_list = perm_df['canonical'].value_counts().head(15).index.tolist()
+            perm_axis_stats = perm_df[perm_df['canonical'].isin(top_perm_list)].groupby(['canonical', 'chosen_axis']).size().reset_index(name='Count')
+            fig_perm = px.bar(perm_axis_stats, x='Count', y='canonical', color='chosen_axis',
+                             orientation='h', barmode='stack',
+                             color_discrete_map=AXIS_COLOR_MAP)
+            fig_perm.update_layout(yaxis_title="")
+            st.plotly_chart(fig_perm, width='stretch')
+        else:
+            st.write("Aucune donnée chercheur permanent disponible.")
             
     st.markdown("---")
     st.subheader("📑 Détails et Correction des Publications")
