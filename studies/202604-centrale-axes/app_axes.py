@@ -71,7 +71,7 @@ def _norm(text):
     return text
 
 def _build_researcher_lookup():
-    """Build {norm_last_word: [(norm_full_last, norm_first_initial)]} for fast matching."""
+    """Build {norm_last_word: [(norm_full_last, norm_first_initial, orig_last, orig_first)]}."""
     lookup = {}
     for last, first in PERMANENT_RESEARCHERS:
         norm_full_last = _norm(last)
@@ -79,33 +79,41 @@ def _build_researcher_lookup():
         for word in last.split():
             key = _norm(word)
             if len(key) >= 3:
-                lookup.setdefault(key, []).append((norm_full_last, norm_first_init))
+                lookup.setdefault(key, []).append((norm_full_last, norm_first_init, last, first))
     return lookup
 
 _RESEARCHER_LOOKUP = _build_researcher_lookup()
 
-def is_permanent_researcher(author_name):
-    """Return True if the author name matches a permanent researcher."""
+def _match_researcher(author_name):
+    """Return (orig_last, orig_first) from PERMANENT_RESEARCHERS if matched, else None."""
     if not isinstance(author_name, str) or not author_name.strip():
-        return False
+        return None
     words = author_name.strip().split()
     if not words:
-        return False
+        return None
     norm_first_init = _norm(words[0][0]) if words[0] else ""
-    # Check all words (last name candidates) except very short ones
     for word in words:
         key = _norm(word)
         if len(key) < 3:
             continue
         if key in _RESEARCHER_LOOKUP:
-            for norm_full_last, r_first_init in _RESEARCHER_LOOKUP[key]:
-                # If researcher has no first name recorded, match on last name only
-                if not r_first_init:
-                    return True
-                # Otherwise verify first initial
-                if norm_first_init == r_first_init:
-                    return True
-    return False
+            for norm_full_last, r_first_init, orig_last, orig_first in _RESEARCHER_LOOKUP[key]:
+                if not r_first_init or norm_first_init == r_first_init:
+                    return (orig_last, orig_first)
+    return None
+
+def get_canonical_name(author_name):
+    """Return a display name like 'Jose Vicente Aguado Lopez' from the official list, or None."""
+    match = _match_researcher(author_name)
+    if match is None:
+        return None
+    orig_last, orig_first = match
+    first_str = orig_first.title() if orig_first else ""
+    last_str = orig_last.title()
+    return f"{first_str} {last_str}".strip() if first_str else last_str
+
+def is_permanent_researcher(author_name):
+    return _match_researcher(author_name) is not None
 
 def has_permanent_researcher(authors_str):
     """Return True if any author in a pipe-separated string is a permanent researcher."""
@@ -293,14 +301,24 @@ else:
     filter_permanent = st.sidebar.checkbox("👩‍🔬 Chercheurs permanents uniquement", value=True)
     show_only_corrected = st.sidebar.checkbox("👁️ Voir seulement les corrections", value=False)
 
-    # Filter by Author — restricted to permanent researchers when checkbox is on
-    all_authors = set()
-    for a_str in df_raw['authors'].dropna().unique():
-        for a in a_str.split('|'):
-            a = a.strip()
-            if a and (not filter_permanent or is_permanent_researcher(a)):
-                all_authors.add(a)
-    selected_author = st.sidebar.selectbox("Chercheur :", ["Tous"] + sorted(list(all_authors)))
+    # Filter by Author — show canonical names when filter_permanent is on
+    if filter_permanent:
+        canonical_authors = set()
+        for a_str in df_raw['authors'].dropna().unique():
+            for a in a_str.split('|'):
+                cn = get_canonical_name(a.strip())
+                if cn:
+                    canonical_authors.add(cn)
+        author_options = sorted(canonical_authors)
+    else:
+        all_authors = set()
+        for a_str in df_raw['authors'].dropna().unique():
+            for a in a_str.split('|'):
+                a = a.strip()
+                if a:
+                    all_authors.add(a)
+        author_options = sorted(all_authors)
+    selected_author = st.sidebar.selectbox("Chercheur :", ["Tous"] + author_options)
 
     # Applying filters
     df = df_raw.copy()
@@ -318,7 +336,13 @@ else:
         df = df[df['chosen_axis'] == selected_axis]
         
     if selected_author != "Tous":
-        df = df[df['authors'].str.contains(selected_author, na=False, regex=False)]
+        if filter_permanent:
+            df = df[df['authors'].apply(lambda s: any(
+                get_canonical_name(a.strip()) == selected_author
+                for a in (s.split('|') if isinstance(s, str) else [])
+            ))]
+        else:
+            df = df[df['authors'].str.contains(selected_author, na=False, regex=False)]
     
     # --- Main Content ---
     st.title("📊 Dashboard des Axes Stratégiques Centrale Nantes")
