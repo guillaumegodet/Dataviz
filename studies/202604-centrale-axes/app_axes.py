@@ -55,11 +55,17 @@ PERMANENT_RESEARCHERS = [
     ("WEBER", "Matthieu"), ("METILLON", "Marceau"),
 ]
 
+_SPECIAL_CHARS = str.maketrans({
+    'ł': 'l', 'ø': 'o', 'ð': 'd', 'þ': 't', 'æ': 'ae', 'œ': 'oe',
+    'ß': 'ss', 'ĸ': 'k', 'ŋ': 'n', 'ı': 'i',
+})
+
 def _norm(text):
-    """Normalize text: lowercase, remove accents and non-alpha chars."""
+    """Normalize text: lowercase, transliterate special Latin chars, remove accents."""
     if not isinstance(text, str):
         return ""
     text = text.lower()
+    text = text.translate(_SPECIAL_CHARS)
     text = "".join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
     text = re.sub(r'[^a-z]', '', text)
     return text
@@ -283,17 +289,18 @@ else:
     # Filter by Strategic Axis
     all_axes = sorted(df_raw['chosen_axis'].unique())
     selected_axis = st.sidebar.selectbox("Axe Stratégique :", ["Tous"] + all_axes)
-    
-    # Filter by Author (only those appearing in 'authors' column)
+
+    filter_permanent = st.sidebar.checkbox("👩‍🔬 Chercheurs permanents uniquement", value=True)
+    show_only_corrected = st.sidebar.checkbox("👁️ Voir seulement les corrections", value=False)
+
+    # Filter by Author — restricted to permanent researchers when checkbox is on
     all_authors = set()
     for a_str in df_raw['authors'].dropna().unique():
         for a in a_str.split('|'):
-            if a:
+            a = a.strip()
+            if a and (not filter_permanent or is_permanent_researcher(a)):
                 all_authors.add(a)
     selected_author = st.sidebar.selectbox("Chercheur :", ["Tous"] + sorted(list(all_authors)))
-    
-    show_only_corrected = st.sidebar.checkbox("👁️ Voir seulement les corrections", value=False)
-    filter_permanent = st.sidebar.checkbox("👩‍🔬 Chercheurs permanents uniquement", value=True)
 
     # Applying filters
     df = df_raw.copy()
