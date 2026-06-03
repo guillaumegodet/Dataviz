@@ -7,6 +7,106 @@ import re
 import unicodedata
 from pathlib import Path
 
+# --- PERMANENT RESEARCHERS LIST ---
+# Format: (LASTNAME, FIRSTNAME) — last name may be compound (e.g., "DA CUNHA")
+PERMANENT_RESEARCHERS = [
+    ("AGUADO LOPEZ", "Jose vicente"), ("ALAM", "Syed yasir"), ("ALAMICHEL", "Claire"),
+    ("AUBRUN-SANCHES", "Sandrine"), ("AUGEREAU", "Olivier"), ("BABARIT", "Aurelien"),
+    ("BERTHOME", "Vincent"), ("BINETRUY", "Christophe"), ("BONNEFOY", "Felicien"),
+    ("BORZACCHIELLO", ""), ("BOURDIER", "Sylvain"), ("BOURGUIGNON", "Sebastien"),
+    ("BOUSCASSE", "Benjamin"), ("BRECHETEAU", "Claire"), ("BRIDAY", "Mikael"),
+    ("BURTIN", "Christian"), ("CALMET-GUIDONI", "Isabelle"), ("CANARD", "Maxime"),
+    ("CAPDEVILLE", "Guy"), ("CARTRAUD", "Patrice"), ("CHALET", "David"),
+    ("CHENOUARD", "Raphael"), ("CHERUBINI", "Andrea"), ("CHESSE", "Pascal"),
+    ("CHRIETTE", "Abdelhamid"), ("COMAS-CARDONA", "Sebastien"), ("CONAN", "Boris"),
+    ("CORET", "Michel"), ("COSSON", "Pascal"), ("DA CUNHA", "Catherine"),
+    ("DELACROIX", "Sylvain"), ("DENG", "Ganbo"), ("DIGONNET", "Hugues"),
+    ("DUBOUIL", "Remy"), ("DUCOIN", "Antoine"), ("DUCROZET", "Guillaume"),
+    ("ESLAMI", "Yasamin"), ("FOUCHER", "Francoise"), ("FREMONT", "Vincent"),
+    ("FRIBOURG", "Rebecca"), ("GARCIA", "Gaetan"), ("GENTAZ", "Lionel"),
+    ("GHANES", "Malek"), ("GORNET", "Laurent"), ("GOUMY", "Guillaume"),
+    ("GRONDIN", "Frederic"), ("GUZIOLOWSKI", "Carito"), ("HAMIDA", "Mohamed Assaad"),
+    ("HAMON", "Arnaud"), ("HERY", "Elwan"), ("HETET", "Jean-Francois"),
+    ("HILAIRET", "Mickael"), ("HILLOULIN", "Benoit"), ("HLADIK", "Pierre-Emmanuel"),
+    ("HUNEAU", "Bertrand"), ("IBRAHIM", "Elkhatib"), ("KERMORGANT", "Olivier"),
+    ("KOTRONIS", "Panagiotis"), ("LAROCHE", "Florent"), ("LE", "Benoit"),
+    ("LE BRIZAUT", "Jean-sebastien"), ("LE CARPENTIER", "Eric"), ("LE NEEL", "Tugdual Amaury"),
+    ("LE TOUZE", "David"), ("LEBRET", "Guy"), ("LEGOFF", "Olivier"),
+    ("LEGRAIN", "Gregory"), ("LEGRAND", "Mathias"), ("LEROY", "Vincent"),
+    ("LEROYER", "Alban"), ("LESAGE", "Matisse"), ("LESTANDI", "Lucas"),
+    ("LI", "Zhe"), ("LIME", "Didier"), ("LIMOU", "Sophie"),
+    ("LOUKILI", "Ahmed"), ("MAGNIN", "Morgan"), ("MAHE", "Vincent"),
+    ("MAIBOOM", "Alain"), ("MARCKMANN", "Gilles"), ("MARINESCU", "Bogdan"),
+    ("MARTIN", "Jean-yves"), ("MARTY", "Pierre"), ("MATEUS LAMUS", "Diana"),
+    ("MERRIEN", "Arnaud"), ("MICHEL", "Bertrand"), ("MICHEL", "Julien"),
+    ("MOUSSAOUI", "Said"), ("MURA", "Ernesto"), ("NORMAND", "Jean-Marie"),
+    ("NOUY", "Anthony"), ("OGER", "Guillaume"), ("OHANA", "Jeremy"),
+    ("OMMI", "Siddhartha Harsha"), ("OTHMAN", "Ramzi"), ("PARROT", "Remi"),
+    ("PERRET", "Laurent"), ("PERROT", "Nicolas"), ("PETIOT", "Jean-francois"),
+    ("PLESTAN", "Franck"), ("POIRSON", "Emilie"), ("RACINEUX", "Guillaume"),
+    ("RAUCH", "Matthieu"), ("RIBATET", "Mathieu"), ("RIZKALLAH", "Mira"),
+    ("ROCHA DA SILVA", "Luisa"), ("ROUSSET", "Jean-marc"), ("ROUX", "Olivier Henri"),
+    ("ROZIERE", "Emmanuel"), ("ROZYCKI", "Patrick"), ("SAAD", "Mazen"),
+    ("SALAMEH", "Georges"), ("SANDOVAL AREVALO", "JuanSebastian"), ("SCIARRA", "Giulio"),
+    ("SERANDOUR", "Aurelien"), ("SERVIERES", "Myriam"), ("SIMON", "Loick"),
+    ("STAINIER", "Laurent"), ("STAQUET", "Gaetan"), ("SYERKO", "Olena"),
+    ("TARALOVA", "Ina"), ("THOMAS", "Vinu"), ("TOURRE", "Vincent"),
+    ("TOUZE", "Stephane"), ("VERRON", "Erwan"), ("WACKERS", "Jeroen"),
+    ("WEBER", "Matthieu"), ("METILLON", "Marceau"),
+]
+
+def _norm(text):
+    """Normalize text: lowercase, remove accents and non-alpha chars."""
+    if not isinstance(text, str):
+        return ""
+    text = text.lower()
+    text = "".join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
+    text = re.sub(r'[^a-z]', '', text)
+    return text
+
+def _build_researcher_lookup():
+    """Build {norm_last_word: [(norm_full_last, norm_first_initial)]} for fast matching."""
+    lookup = {}
+    for last, first in PERMANENT_RESEARCHERS:
+        norm_full_last = _norm(last)
+        norm_first_init = _norm(first[0]) if first else ""
+        for word in last.split():
+            key = _norm(word)
+            if len(key) >= 3:
+                lookup.setdefault(key, []).append((norm_full_last, norm_first_init))
+    return lookup
+
+_RESEARCHER_LOOKUP = _build_researcher_lookup()
+
+def is_permanent_researcher(author_name):
+    """Return True if the author name matches a permanent researcher."""
+    if not isinstance(author_name, str) or not author_name.strip():
+        return False
+    words = author_name.strip().split()
+    if not words:
+        return False
+    norm_first_init = _norm(words[0][0]) if words[0] else ""
+    # Check all words (last name candidates) except very short ones
+    for word in words:
+        key = _norm(word)
+        if len(key) < 3:
+            continue
+        if key in _RESEARCHER_LOOKUP:
+            for norm_full_last, r_first_init in _RESEARCHER_LOOKUP[key]:
+                # If researcher has no first name recorded, match on last name only
+                if not r_first_init:
+                    return True
+                # Otherwise verify first initial
+                if norm_first_init == r_first_init:
+                    return True
+    return False
+
+def has_permanent_researcher(authors_str):
+    """Return True if any author in a pipe-separated string is a permanent researcher."""
+    if not isinstance(authors_str, str):
+        return False
+    return any(is_permanent_researcher(a.strip()) for a in authors_str.split('|'))
+
 # Define a distinct and high-contrast color palette for the 4 strategic axes
 AXIS_COLOR_MAP = {
     "Production et gestion des énergies renouvelables": "#FFD700", # Gold / Yellow
@@ -193,9 +293,12 @@ else:
     selected_author = st.sidebar.selectbox("Chercheur :", ["Tous"] + sorted(list(all_authors)))
     
     show_only_corrected = st.sidebar.checkbox("👁️ Voir seulement les corrections", value=False)
+    filter_permanent = st.sidebar.checkbox("👩‍🔬 Chercheurs permanents uniquement", value=True)
 
     # Applying filters
     df = df_raw.copy()
+    if filter_permanent:
+        df = df[df['authors'].apply(has_permanent_researcher)]
     df = df[(df['year'] >= selected_years[0]) & (df['year'] <= selected_years[1])]
     
     if show_only_corrected and 'is_corrected' in df.columns:
