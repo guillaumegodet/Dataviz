@@ -346,154 +346,154 @@ else:
     
     # --- Main Content ---
     st.title("📊 Dashboard des Axes Stratégiques Centrale Nantes")
-    
+
     if not GRIST_API_KEY:
         st.warning("⚠️ Clé API Grist non configurée. Les corrections ne seront pas chargées.")
     elif 'is_corrected' in df.columns:
         st.info(f"✅ {df['is_corrected'].sum()} corrections chargées depuis Grist.")
 
     st.write(f"Analyse de {len(df)} publications identifiées sur la période sélectionnée.")
-    
-    c1, c2 = st.columns(2)
-    
-    with c1:
-        st.subheader("Répartition par Axes")
-        axis_counts = df['chosen_axis'].value_counts().reset_index()
-        axis_counts.columns = ['Axe', 'Nombre']
-        fig_axis = px.pie(axis_counts, values='Nombre', names='Axe', hole=0.4, 
-                         color='Axe', color_discrete_map=AXIS_COLOR_MAP)
-        st.plotly_chart(fig_axis, width='stretch')
-        
-    with c2:
-        st.subheader("Évolution Temporelle")
-        evo_df = df.groupby(['year', 'chosen_axis']).size().reset_index(name='Publications')
-        fig_evo = px.area(evo_df, x='year', y='Publications', color='chosen_axis', 
-                         color_discrete_map=AXIS_COLOR_MAP)
-        fig_evo.update_layout(xaxis_type='category')
-        st.plotly_chart(fig_evo, width='stretch')
-    
-    st.markdown("---")
-    
-    c3, c4, c5 = st.columns(3)
 
-    with c3:
-        st.subheader("Dominance par Labo")
-        lab_df = df.copy()
-        lab_df = lab_df.assign(lab=lab_df['labs'].str.split('|')).explode('lab')
-        lab_df = lab_df[lab_df['lab'] != "Inconnu"]
+    tab_dataviz, tab_publications = st.tabs(["📈 Dataviz", "📑 Publications"])
 
-        if not lab_df.empty:
-            lab_axis_stats = lab_df.groupby(['lab', 'chosen_axis']).size().reset_index(name='Count')
-            fig_lab = px.bar(lab_axis_stats, x='Count', y='lab', color='chosen_axis',
-                            orientation='h', barmode='stack',
-                            color_discrete_map=AXIS_COLOR_MAP)
-            st.plotly_chart(fig_lab, width='stretch')
-        else:
-            st.write("Aucune donnée labo disponible.")
+    with tab_dataviz:
+        c1, c2 = st.columns(2)
 
-    with c4:
-        st.subheader("Top Chercheurs Nantais")
-        author_df = df.copy()
-        author_df = author_df.assign(author=author_df['authors'].str.split('|')).explode('author')
-        author_df = author_df[author_df['author'].str.strip() != ""]
+        with c1:
+            st.subheader("Répartition par Axes")
+            axis_counts = df['chosen_axis'].value_counts().reset_index()
+            axis_counts.columns = ['Axe', 'Nombre']
+            fig_axis = px.pie(axis_counts, values='Nombre', names='Axe', hole=0.4,
+                             color='Axe', color_discrete_map=AXIS_COLOR_MAP)
+            st.plotly_chart(fig_axis, width='stretch')
 
-        if not author_df.empty:
-            top_authors_list = author_df['author'].value_counts().head(15).index.tolist()
-            author_axis_stats = author_df[author_df['author'].isin(top_authors_list)].groupby(['author', 'chosen_axis']).size().reset_index(name='Count')
-            fig_auth = px.bar(author_axis_stats, x='Count', y='author', color='chosen_axis',
-                             orientation='h', barmode='stack',
+        with c2:
+            st.subheader("Évolution Temporelle")
+            evo_df = df.groupby(['year', 'chosen_axis']).size().reset_index(name='Publications')
+            fig_evo = px.area(evo_df, x='year', y='Publications', color='chosen_axis',
                              color_discrete_map=AXIS_COLOR_MAP)
-            st.plotly_chart(fig_auth, width='stretch')
-        else:
-            st.write("Aucune donnée chercheur disponible.")
+            fig_evo.update_layout(xaxis_type='category')
+            st.plotly_chart(fig_evo, width='stretch')
 
-    with c5:
-        st.subheader("Top Permanents Centrale Nantes")
-        perm_df = df.copy()
-        perm_df = perm_df.assign(author=perm_df['authors'].str.split('|')).explode('author')
-        perm_df['author'] = perm_df['author'].str.strip()
-        perm_df['canonical'] = perm_df['author'].apply(get_canonical_name)
-        perm_df = perm_df[perm_df['canonical'].notna()]
+        st.markdown("---")
 
-        if not perm_df.empty:
-            top_perm_list = perm_df['canonical'].value_counts().head(15).index.tolist()
-            perm_axis_stats = perm_df[perm_df['canonical'].isin(top_perm_list)].groupby(['canonical', 'chosen_axis']).size().reset_index(name='Count')
-            fig_perm = px.bar(perm_axis_stats, x='Count', y='canonical', color='chosen_axis',
-                             orientation='h', barmode='stack',
-                             color_discrete_map=AXIS_COLOR_MAP)
-            fig_perm.update_layout(yaxis_title="")
-            st.plotly_chart(fig_perm, width='stretch')
-        else:
-            st.write("Aucune donnée chercheur permanent disponible.")
-            
-    st.markdown("---")
-    st.subheader("📑 Détails et Correction des Publications")
-    
-    search_query = st.text_input("🔍 Rechercher une publication par titre ou auteur :", "")
-    
-    if search_query:
-        df = df[df['title'].str.contains(search_query, case=False, na=False) | 
-                df['authors'].str.contains(search_query, case=False, na=False)]
+        c3, c4, c5 = st.columns(3)
 
-    # Pagination
-    PAGE_SIZE = 10
-    total_pages = (len(df) // PAGE_SIZE) + (1 if len(df) % PAGE_SIZE > 0 else 0)
-    
-    if total_pages > 0:
-        c_page, c_info = st.columns([1, 4])
-        with c_page:
-            page = st.number_input("Page:", min_value=1, max_value=total_pages, step=1)
-        with c_info:
-            st.write(f"Affichage de {len(df)} publications (Page {page}/{total_pages})")
-            
-        start_idx = (page - 1) * PAGE_SIZE
-        end_idx = start_idx + PAGE_SIZE
-        df_page = df.iloc[start_idx:end_idx]
+        with c3:
+            st.subheader("Dominance par Labo")
+            lab_df = df.copy()
+            lab_df = lab_df.assign(lab=lab_df['labs'].str.split('|')).explode('lab')
+            lab_df = lab_df[lab_df['lab'] != "Inconnu"]
 
-        for idx, row in df_page.iterrows():
-            with st.expander(f"📌 {row['title']} ({row['year']})"):
-                st.write(f"**👥 Auteurs :** {row['authors']}")
-                links = [f"[OpenAlex](https://openalex.org/{row['work_id']})"]
-                if row.get('doi') and pd.notna(row['doi']):
-                    links.append(f"[DOI]({row['doi']})")
-                st.markdown("🔗 " + " · ".join(links))
-                st.write(f"**📖 Revue :** {row['journal']} (ISSN: {row['issn']})")
-                st.write(f"**🎯 Axe actuel :** `{row['chosen_axis']}`")
-                if row.get('is_corrected'):
-                    st.success("✅ Cet axe a été validé/corrigé manuellement.")
-                
-                st.write(f"**🧠 Motivation IA :** {row['motivation']}")
-                st.write(f"**🔬 Sujets / Disciplines :** {row['topics']} | {row['subfields']}")
-                st.info(f"**📝 Résumé :** {row['abstract']}")
-                
-                # Correction part
-                st.divider()
-                st.write("✏️ **Modifier l'axe stratégique :**")
-                
-                # Create a key that is unique but stable
-                new_axis = st.selectbox(
-                    "Choisir un nouvel axe :",
-                    options=list(AXIS_COLOR_MAP.keys()),
-                    index=list(AXIS_COLOR_MAP.keys()).index(row['chosen_axis']) if row['chosen_axis'] in AXIS_COLOR_MAP else 0,
-                    key=f"select_{row['work_id']}"
-                )
-                
-                if st.button("Mettre à jour dans Grist", key=f"btn_{row['work_id']}"):
-                    success, msg = update_grist_axis(row.get('grist_id'), new_axis)
-                    if success:
-                        st.balloons()
-                        st.success("Synchronisation avec Grist réussie ! (L'affichage sera mis à jour au prochain rafraîchissement)")
-                        st.cache_data.clear() # Clear cache to force reload
-                    else:
-                        st.error(f"⚠️ {msg}")
-                        st.info("Vérifiez que le nom de la table et de la colonne 'Axe_Retenu' sont corrects dans Grist.")
+            if not lab_df.empty:
+                lab_axis_stats = lab_df.groupby(['lab', 'chosen_axis']).size().reset_index(name='Count')
+                fig_lab = px.bar(lab_axis_stats, x='Count', y='lab', color='chosen_axis',
+                                orientation='h', barmode='stack',
+                                color_discrete_map=AXIS_COLOR_MAP)
+                st.plotly_chart(fig_lab, width='stretch')
+            else:
+                st.write("Aucune donnée labo disponible.")
 
-    # Export remains available
-    st.divider()
-    csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Télécharger la sélection actuelle (CSV)",
-        data=csv,
-        file_name='publications_centrale_filtrees.csv',
-        mime='text/csv',
-    )
+        with c4:
+            st.subheader("Top Chercheurs Nantais")
+            author_df = df.copy()
+            author_df = author_df.assign(author=author_df['authors'].str.split('|')).explode('author')
+            author_df = author_df[author_df['author'].str.strip() != ""]
+
+            if not author_df.empty:
+                top_authors_list = author_df['author'].value_counts().head(15).index.tolist()
+                author_axis_stats = author_df[author_df['author'].isin(top_authors_list)].groupby(['author', 'chosen_axis']).size().reset_index(name='Count')
+                fig_auth = px.bar(author_axis_stats, x='Count', y='author', color='chosen_axis',
+                                 orientation='h', barmode='stack',
+                                 color_discrete_map=AXIS_COLOR_MAP)
+                st.plotly_chart(fig_auth, width='stretch')
+            else:
+                st.write("Aucune donnée chercheur disponible.")
+
+        with c5:
+            st.subheader("Top Permanents Centrale Nantes")
+            perm_df = df.copy()
+            perm_df = perm_df.assign(author=perm_df['authors'].str.split('|')).explode('author')
+            perm_df['author'] = perm_df['author'].str.strip()
+            perm_df['canonical'] = perm_df['author'].apply(get_canonical_name)
+            perm_df = perm_df[perm_df['canonical'].notna()]
+
+            if not perm_df.empty:
+                top_perm_list = perm_df['canonical'].value_counts().head(15).index.tolist()
+                perm_axis_stats = perm_df[perm_df['canonical'].isin(top_perm_list)].groupby(['canonical', 'chosen_axis']).size().reset_index(name='Count')
+                fig_perm = px.bar(perm_axis_stats, x='Count', y='canonical', color='chosen_axis',
+                                 orientation='h', barmode='stack',
+                                 color_discrete_map=AXIS_COLOR_MAP)
+                fig_perm.update_layout(yaxis_title="")
+                st.plotly_chart(fig_perm, width='stretch')
+            else:
+                st.write("Aucune donnée chercheur permanent disponible.")
+
+    with tab_publications:
+        search_query = st.text_input("🔍 Rechercher une publication par titre ou auteur :", "")
+
+        df_pub = df.copy()
+        if search_query:
+            df_pub = df_pub[df_pub['title'].str.contains(search_query, case=False, na=False) |
+                    df_pub['authors'].str.contains(search_query, case=False, na=False)]
+
+        # Pagination
+        PAGE_SIZE = 10
+        total_pages = (len(df_pub) // PAGE_SIZE) + (1 if len(df_pub) % PAGE_SIZE > 0 else 0)
+
+        if total_pages > 0:
+            c_page, c_info = st.columns([1, 4])
+            with c_page:
+                page = st.number_input("Page:", min_value=1, max_value=total_pages, step=1)
+            with c_info:
+                st.write(f"Affichage de {len(df_pub)} publications (Page {page}/{total_pages})")
+
+            start_idx = (page - 1) * PAGE_SIZE
+            end_idx = start_idx + PAGE_SIZE
+            df_page = df_pub.iloc[start_idx:end_idx]
+
+            for idx, row in df_page.iterrows():
+                with st.expander(f"📌 {row['title']} ({row['year']})"):
+                    st.write(f"**👥 Auteurs :** {row['authors']}")
+                    links = [f"[OpenAlex](https://openalex.org/{row['work_id']})"]
+                    if row.get('doi') and pd.notna(row['doi']):
+                        links.append(f"[DOI]({row['doi']})")
+                    st.markdown("🔗 " + " · ".join(links))
+                    st.write(f"**📖 Revue :** {row['journal']} (ISSN: {row['issn']})")
+                    st.write(f"**🎯 Axe actuel :** `{row['chosen_axis']}`")
+                    if row.get('is_corrected'):
+                        st.success("✅ Cet axe a été validé/corrigé manuellement.")
+
+                    st.write(f"**🧠 Motivation IA :** {row['motivation']}")
+                    st.write(f"**🔬 Sujets / Disciplines :** {row['topics']} | {row['subfields']}")
+                    st.info(f"**📝 Résumé :** {row['abstract']}")
+
+                    # Correction part
+                    st.divider()
+                    st.write("✏️ **Modifier l'axe stratégique :**")
+
+                    new_axis = st.selectbox(
+                        "Choisir un nouvel axe :",
+                        options=list(AXIS_COLOR_MAP.keys()),
+                        index=list(AXIS_COLOR_MAP.keys()).index(row['chosen_axis']) if row['chosen_axis'] in AXIS_COLOR_MAP else 0,
+                        key=f"select_{row['work_id']}"
+                    )
+
+                    if st.button("Mettre à jour dans Grist", key=f"btn_{row['work_id']}"):
+                        success, msg = update_grist_axis(row.get('grist_id'), new_axis)
+                        if success:
+                            st.balloons()
+                            st.success("Synchronisation avec Grist réussie ! (L'affichage sera mis à jour au prochain rafraîchissement)")
+                            st.cache_data.clear()
+                        else:
+                            st.error(f"⚠️ {msg}")
+                            st.info("Vérifiez que le nom de la table et de la colonne 'Axe_Retenu' sont corrects dans Grist.")
+
+        st.divider()
+        csv = df_pub.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Télécharger la sélection actuelle (CSV)",
+            data=csv,
+            file_name='publications_centrale_filtrees.csv',
+            mime='text/csv',
+        )
