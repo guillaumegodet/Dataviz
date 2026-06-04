@@ -129,6 +129,8 @@ AXIS_COLOR_MAP = {
     "Ingénierie pour la santé": "#FF4500",                       # Orange Red
     "Autre / Non classé": "#A9A9A9"                              # Dark Gray
 }
+AXIS_NAMES = [ax for ax in AXIS_COLOR_MAP if ax != "Autre / Non classé"]
+SCORE_THRESHOLD = 1.0  # axes with score strictly above this are included
 
 # --- GRIST CONFIGURATION ---
 GRIST_DOC_ID = "5aREUrB1kuFAcVY4GTUDfA"
@@ -270,7 +272,16 @@ def load_data():
         
     # Merge categories if needed (ensure uniform naming)
     df['chosen_axis'] = df['chosen_axis'].replace("Non classé", "Autre / Non classé")
-        
+
+    # Compute multi-axis list: all axes with score > SCORE_THRESHOLD, else fallback
+    has_grist = 'grist_val' in df.columns
+    def _compute_axes(row):
+        if has_grist and row.get('is_corrected', False) and pd.notna(row.get('grist_val')):
+            return [ax.strip() for ax in str(row['grist_val']).split('|') if ax.strip()]
+        above = [ax for ax in AXIS_NAMES if row.get(ax, 0) > SCORE_THRESHOLD]
+        return above if above else [row['chosen_axis']]
+    df['chosen_axes'] = df.apply(_compute_axes, axis=1)
+
     return df
 
 df_raw = load_data()
@@ -333,7 +344,7 @@ else:
         df = df[df['labs'].str.contains(selected_lab, na=False, regex=False)]
     
     if selected_axis != "Tous":
-        df = df[df['chosen_axis'] == selected_axis]
+        df = df[df['chosen_axes'].apply(lambda axes: selected_axis in axes)]
         
     if selected_author != "Tous":
         if filter_permanent:
@@ -357,11 +368,14 @@ else:
     tab_dataviz, tab_publications = st.tabs(["📈 Dataviz", "📑 Publications"])
 
     with tab_dataviz:
+        # Explode chosen_axes so each (publication, axis) pair is one row
+        df_exp = df.explode('chosen_axes').rename(columns={'chosen_axes': 'axe'})
+
         c1, c2 = st.columns(2)
 
         with c1:
             st.subheader("Répartition par Axes")
-            axis_counts = df['chosen_axis'].value_counts().reset_index()
+            axis_counts = df_exp['axe'].value_counts().reset_index()
             axis_counts.columns = ['Axe', 'Nombre']
             fig_axis = px.pie(axis_counts, values='Nombre', names='Axe', hole=0.4,
                              color='Axe', color_discrete_map=AXIS_COLOR_MAP)
@@ -369,10 +383,10 @@ else:
 
         with c2:
             st.subheader("Évolution Temporelle")
-            evo_df = df.groupby(['year', 'chosen_axis']).size().reset_index(name='Publications')
-            fig_evo = px.area(evo_df, x='year', y='Publications', color='chosen_axis',
+            evo_df = df_exp.groupby(['year', 'axe']).size().reset_index(name='Publications')
+            fig_evo = px.area(evo_df, x='year', y='Publications', color='axe',
                              color_discrete_map=AXIS_COLOR_MAP)
-            fig_evo.update_layout(xaxis_type='category')
+            fig_evo.update_layout(xaxis_type='category', legend_title_text='Axe')
             st.plotly_chart(fig_evo, width='stretch')
 
         st.markdown("---")
@@ -381,38 +395,40 @@ else:
 
         with c3:
             st.subheader("Dominance par Labo")
-            lab_df = df.copy()
+            lab_df = df_exp.copy()
             lab_df = lab_df.assign(lab=lab_df['labs'].str.split('|')).explode('lab')
             lab_df = lab_df[lab_df['lab'] != "Inconnu"]
 
             if not lab_df.empty:
-                lab_axis_stats = lab_df.groupby(['lab', 'chosen_axis']).size().reset_index(name='Count')
-                fig_lab = px.bar(lab_axis_stats, x='Count', y='lab', color='chosen_axis',
+                lab_axis_stats = lab_df.groupby(['lab', 'axe']).size().reset_index(name='Count')
+                fig_lab = px.bar(lab_axis_stats, x='Count', y='lab', color='axe',
                                 orientation='h', barmode='stack',
                                 color_discrete_map=AXIS_COLOR_MAP)
+                fig_lab.update_layout(legend_title_text='Axe')
                 st.plotly_chart(fig_lab, width='stretch')
             else:
                 st.write("Aucune donnée labo disponible.")
 
         with c4:
             st.subheader("Top Chercheurs Nantais")
-            author_df = df.copy()
+            author_df = df_exp.copy()
             author_df = author_df.assign(author=author_df['authors'].str.split('|')).explode('author')
             author_df = author_df[author_df['author'].str.strip() != ""]
 
             if not author_df.empty:
                 top_authors_list = author_df['author'].value_counts().head(15).index.tolist()
-                author_axis_stats = author_df[author_df['author'].isin(top_authors_list)].groupby(['author', 'chosen_axis']).size().reset_index(name='Count')
-                fig_auth = px.bar(author_axis_stats, x='Count', y='author', color='chosen_axis',
+                author_axis_stats = author_df[author_df['author'].isin(top_authors_list)].groupby(['author', 'axe']).size().reset_index(name='Count')
+                fig_auth = px.bar(author_axis_stats, x='Count', y='author', color='axe',
                                  orientation='h', barmode='stack',
                                  color_discrete_map=AXIS_COLOR_MAP)
+                fig_auth.update_layout(legend_title_text='Axe')
                 st.plotly_chart(fig_auth, width='stretch')
             else:
                 st.write("Aucune donnée chercheur disponible.")
 
         with c5:
             st.subheader("Top Permanents Centrale Nantes")
-            perm_df = df.copy()
+            perm_df = df_exp.copy()
             perm_df = perm_df.assign(author=perm_df['authors'].str.split('|')).explode('author')
             perm_df['author'] = perm_df['author'].str.strip()
             perm_df['canonical'] = perm_df['author'].apply(get_canonical_name)
@@ -420,11 +436,11 @@ else:
 
             if not perm_df.empty:
                 top_perm_list = perm_df['canonical'].value_counts().head(15).index.tolist()
-                perm_axis_stats = perm_df[perm_df['canonical'].isin(top_perm_list)].groupby(['canonical', 'chosen_axis']).size().reset_index(name='Count')
-                fig_perm = px.bar(perm_axis_stats, x='Count', y='canonical', color='chosen_axis',
+                perm_axis_stats = perm_df[perm_df['canonical'].isin(top_perm_list)].groupby(['canonical', 'axe']).size().reset_index(name='Count')
+                fig_perm = px.bar(perm_axis_stats, x='Count', y='canonical', color='axe',
                                  orientation='h', barmode='stack',
                                  color_discrete_map=AXIS_COLOR_MAP)
-                fig_perm.update_layout(yaxis_title="")
+                fig_perm.update_layout(yaxis_title="", legend_title_text='Axe')
                 st.plotly_chart(fig_perm, width='stretch')
             else:
                 st.write("Aucune donnée chercheur permanent disponible.")
@@ -460,9 +476,10 @@ else:
                         links.append(f"[DOI]({row['doi']})")
                     st.markdown("🔗 " + " · ".join(links))
                     st.write(f"**📖 Revue :** {row['journal']} (ISSN: {row['issn']})")
-                    st.write(f"**🎯 Axe actuel :** `{row['chosen_axis']}`")
+                    current_axes = row['chosen_axes'] if isinstance(row['chosen_axes'], list) else [row['chosen_axis']]
+                    st.write(f"**🎯 Axes actuels :** {' · '.join(f'`{a}`' for a in current_axes)}")
                     if row.get('is_corrected'):
-                        st.success("✅ Cet axe a été validé/corrigé manuellement.")
+                        st.success("✅ Ces axes ont été validés/corrigés manuellement.")
 
                     st.write(f"**🧠 Motivation IA :** {row['motivation']}")
                     st.write(f"**🔬 Sujets / Disciplines :** {row['topics']} | {row['subfields']}")
@@ -470,24 +487,28 @@ else:
 
                     # Correction part
                     st.divider()
-                    st.write("✏️ **Modifier l'axe stratégique :**")
+                    st.write("✏️ **Modifier les axes stratégiques :**")
 
-                    new_axis = st.selectbox(
-                        "Choisir un nouvel axe :",
+                    valid_current = [a for a in current_axes if a in AXIS_COLOR_MAP]
+                    new_axes = st.multiselect(
+                        "Choisir un ou plusieurs axes :",
                         options=list(AXIS_COLOR_MAP.keys()),
-                        index=list(AXIS_COLOR_MAP.keys()).index(row['chosen_axis']) if row['chosen_axis'] in AXIS_COLOR_MAP else 0,
+                        default=valid_current if valid_current else ["Autre / Non classé"],
                         key=f"select_{row['work_id']}"
                     )
 
                     if st.button("Mettre à jour dans Grist", key=f"btn_{row['work_id']}"):
-                        success, msg = update_grist_axis(row.get('grist_id'), new_axis)
-                        if success:
-                            st.balloons()
-                            st.success("Synchronisation avec Grist réussie ! (L'affichage sera mis à jour au prochain rafraîchissement)")
-                            st.cache_data.clear()
+                        if not new_axes:
+                            st.warning("Sélectionnez au moins un axe.")
                         else:
-                            st.error(f"⚠️ {msg}")
-                            st.info("Vérifiez que le nom de la table et de la colonne 'Axe_Retenu' sont corrects dans Grist.")
+                            success, msg = update_grist_axis(row.get('grist_id'), "|".join(new_axes))
+                            if success:
+                                st.balloons()
+                                st.success("Synchronisation avec Grist réussie ! (L'affichage sera mis à jour au prochain rafraîchissement)")
+                                st.cache_data.clear()
+                            else:
+                                st.error(f"⚠️ {msg}")
+                                st.info("Vérifiez que le nom de la table et de la colonne 'Axe_Retenu' sont corrects dans Grist.")
 
         st.divider()
         csv = df_pub.to_csv(index=False).encode('utf-8')
